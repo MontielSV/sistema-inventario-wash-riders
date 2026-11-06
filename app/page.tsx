@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import Sidebar from './components/Sidebar';
 import DashboardView from './components/admin/DashboardView';
 import ProductosView from './components/admin/ProductosView';
+import RegistrarVentaView from './components/admin/RegistrarVentaView';
 import InventarioView from './components/admin/InventarioView';
 import ReportePDFView from './components/ReportePDFView';
 import { LockClosedIcon, UserIcon } from '@heroicons/react/24/outline';
@@ -10,7 +11,7 @@ import { LockClosedIcon, UserIcon } from '@heroicons/react/24/outline';
 export default function Home() {
   const [autenticado, setAutenticado] = useState(false);
   const [cargandoSesion, setCargandoSesion] = useState(true);
-  const [vistaActiva, setVistaActiva] = useState('dashboard');
+  const [vistaActiva, setVistaActiva] = useState('inicio');
   
   // Estados para el login
   const [usuario, setUsuario] = useState('');
@@ -55,7 +56,7 @@ export default function Home() {
   const handleLogout = async () => {
     await fetch('/api/login', { method: 'DELETE' });
     setAutenticado(false);
-    setVistaActiva('dashboard');
+    setVistaActiva('inicio');
   };
 
   if (cargandoSesion) {
@@ -144,7 +145,7 @@ export default function Home() {
     );
   }
 
-  // 2. Si está autenticado, muestra el Panel con Sidebar Lateral
+  // 2. Si está autenticado, muestra el Panel con Sidebar Lateral y las 6 vistas
   return (
     <div className="flex min-h-screen flex-col bg-[#030303] lg:flex-row">
       <Sidebar 
@@ -153,10 +154,12 @@ export default function Home() {
         onLogout={handleLogout} 
       />
       <main className="min-w-0 flex-1 overflow-y-auto">
-        {vistaActiva === 'dashboard' && <DashboardView />}
+        {vistaActiva === 'inicio' && <DashboardView />}
         {vistaActiva === 'productos' && <ProductosView />}
+        {vistaActiva === 'registrar-venta' && <RegistrarVentaView />}
         {vistaActiva === 'historial' && <InventarioView />}
-        {vistaActiva === 'pdf' && <ReportePDFView />}
+        {vistaActiva === 'reporte-ventas' && <ReportePDFView />}
+        {vistaActiva === 'reporte-mensual' && <ReportePDFView />}
       </main>
     </div>
   );

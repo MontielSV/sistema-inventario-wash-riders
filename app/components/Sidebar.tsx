@@ -2,8 +2,10 @@
 import { 
   HomeIcon, 
   CubeIcon, 
-  ShoppingBagIcon, 
-  DocumentArrowDownIcon, 
+  ShoppingCartIcon, 
+  ClockIcon, 
+  CalendarDaysIcon, 
+  DocumentChartBarIcon, 
   ArrowRightOnRectangleIcon 
 } from '@heroicons/react/24/outline';
 
@@ -15,10 +17,12 @@ interface SidebarProps {
 
 export default function Sidebar({ vistaActiva, setVistaActiva, onLogout }: SidebarProps) {
   const menuItems = [
-    { id: 'dashboard', nombre: 'Inicio', icono: HomeIcon },
+    { id: 'inicio', nombre: 'Inicio', icono: HomeIcon },
     { id: 'productos', nombre: 'Productos', icono: CubeIcon },
-    { id: 'historial', nombre: 'Historial Compras/Ventas', icono: ShoppingBagIcon },
-    { id: 'pdf', nombre: 'PDF Mensual / Reportes', icono: DocumentArrowDownIcon },
+    { id: 'registrar-venta', nombre: 'Registrar venta', icono: ShoppingCartIcon },
+    { id: 'historial', nombre: 'Historial', icono: ClockIcon },
+    { id: 'reporte-ventas', nombre: 'Reporte de ventas', icono: CalendarDaysIcon },
+    { id: 'reporte-mensual', nombre: 'Reporte mensual', icono: DocumentChartBarIcon },
   ];
 
   return (
