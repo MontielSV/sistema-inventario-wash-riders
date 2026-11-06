@@ -228,7 +228,7 @@ export default function ProductosView() {
                 <th className="px-4 py-3">Disponible</th>
                 <th className="px-4 py-3">Stock mínimo</th>
                 <th className="px-4 py-3">Estado</th>
-                <th className="px-4 py-3 text-right">Acciones</th>
+                <th className="px-4 py-3 text-center">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -262,13 +262,15 @@ export default function ProductosView() {
                           {reponer ? 'Reponer' : 'Disponible'}
                         </span>
                       </td>
-                      <td className="space-x-2 px-4 py-3 text-right">
-                        <button type="button" title="Editar producto" aria-label={`Editar ${p.nombre}`} onClick={() => abrirModal(p)} className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-blue-100 bg-blue-50 text-blue-800 transition-colors hover:bg-blue-100">
-                          <PencilSquareIcon className="w-4 h-4" />
-                        </button>
-                        <button type="button" title="Retirar del catálogo" aria-label={`Retirar ${p.nombre} del catálogo`} onClick={() => handleEliminar(p)} className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-rose-100 bg-rose-50 text-rose-700 transition-colors hover:bg-rose-100">
-                          <TrashIcon className="w-4 h-4" />
-                        </button>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-center gap-2">
+                          <button type="button" title="Editar producto" aria-label={`Editar ${p.nombre}`} onClick={() => abrirModal(p)} className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-blue-100 bg-blue-50 text-blue-800 transition-colors hover:bg-blue-100">
+                            <PencilSquareIcon className="h-4 w-4" />
+                          </button>
+                          <button type="button" title="Retirar del catálogo" aria-label={`Retirar ${p.nombre} del catálogo`} onClick={() => handleEliminar(p)} className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-rose-100 bg-rose-50 text-rose-700 transition-colors hover:bg-rose-100">
+                            <TrashIcon className="h-4 w-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );

@@ -31,6 +31,7 @@ export default function RegistrarVentaView() {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [carrito, setCarrito] = useState<ItemCarrito[]>([]);
   const [busqueda, setBusqueda] = useState('');
+  const [mostrarResultados, setMostrarResultados] = useState(false);
   const [productoId, setProductoId] = useState<number | ''>('');
   const [cantidad, setCantidad] = useState(1);
   const [tipo, setTipo] = useState<TipoSalida>('VENTA');
@@ -68,6 +69,11 @@ export default function RegistrarVentaView() {
       .toLocaleLowerCase()
       .includes(busqueda.trim().toLocaleLowerCase())
   );
+  const seleccionarProducto = (producto: Producto) => {
+    setProductoId(producto.id);
+    setBusqueda(`${producto.nombre} · ${producto.codigo || 'Sin código'}`);
+    setMostrarResultados(false);
+  };
   const total = carrito.reduce((suma, item) => {
     const producto = productos.find((registro) => registro.id === item.producto_id);
     return suma + (producto ? Number(producto.precio) * item.cantidad : 0);
@@ -90,6 +96,7 @@ export default function RegistrarVentaView() {
       return [...actual, { producto_id: productoSeleccionado.id, cantidad }];
     });
     setProductoId('');
+    setBusqueda('');
     setCantidad(1);
     setError('');
   };
@@ -165,37 +172,68 @@ export default function RegistrarVentaView() {
 
         <form onSubmit={registrarSalida} className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(320px,0.7fr)]">
           <div className="space-y-5 rounded-xl border border-white/10 bg-[#0f0f0f] p-5 md:p-7">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <label className="block text-xs font-bold uppercase text-slate-400 sm:col-span-2">
-                Buscar producto
+            <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_160px]">
+              <label className="block text-sm font-semibold text-slate-700">
+                Buscar y seleccionar producto
                 <span className="relative mt-2 block">
                   <MagnifyingGlassIcon className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
                   <input
                     type="search"
+                    role="combobox"
+                    aria-label="Buscar y seleccionar producto"
+                    aria-controls="resultados-productos-venta"
+                    aria-expanded={mostrarResultados}
+                    autoComplete="off"
                     value={busqueda}
-                    onChange={(event) => setBusqueda(event.target.value)}
-                    placeholder="Buscar por nombre o código"
-                    className="w-full rounded-lg border border-white/10 bg-black/50 py-2.5 pl-10 pr-3 text-sm text-white normal-case outline-none focus:border-[#E50914]"
+                    onFocus={() => setMostrarResultados(true)}
+                    onBlur={() => window.setTimeout(() => setMostrarResultados(false), 120)}
+                    onChange={(event) => {
+                      setProductoId('');
+                      setBusqueda(event.target.value);
+                      setMostrarResultados(true);
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Escape') setMostrarResultados(false);
+                      if (event.key === 'Enter' && productosFiltrados[0]) {
+                        event.preventDefault();
+                        seleccionarProducto(productosFiltrados[0]);
+                      }
+                    }}
+                    placeholder={cargando ? 'Cargando productos...' : 'Escribe nombre o código'}
+                    className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-10 pr-3 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                   />
+                  {mostrarResultados && !cargando && (
+                    <ul id="resultados-productos-venta" role="listbox" className="absolute inset-x-0 top-full z-20 mt-1 max-h-64 overflow-y-auto rounded-lg border border-slate-200 bg-white py-1 shadow-xl">
+                      {productosFiltrados.length ? productosFiltrados.map((producto) => {
+                        const enCarrito = carrito.find((item) => item.producto_id === producto.id)?.cantidad || 0;
+                        const disponible = Number(producto.stock_actual) - enCarrito;
+                        const precioPendiente = tipo === 'VENTA' && Number(producto.precio) <= 0;
+                        const deshabilitado = disponible < 1 || precioPendiente;
+                        return (
+                          <li key={producto.id} role="option" aria-selected={producto.id === productoId}>
+                            <button
+                              type="button"
+                              disabled={deshabilitado}
+                              onMouseDown={(event) => event.preventDefault()}
+                              onClick={() => seleccionarProducto(producto)}
+                              className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              <span className="min-w-0">
+                                <span className="block truncate text-sm font-semibold text-slate-800">{producto.nombre}</span>
+                                <span className="mt-0.5 block text-xs text-slate-500">{producto.codigo || 'Sin código'} · {formatoMoneda(Number(producto.precio))}</span>
+                              </span>
+                              <span className={`shrink-0 text-xs font-semibold ${deshabilitado ? 'text-amber-700' : 'text-blue-800'}`}>
+                                {precioPendiente ? 'Configurar precio' : `${disponible} disponibles`}
+                              </span>
+                            </button>
+                          </li>
+                        );
+                      }) : (
+                        <li className="px-3 py-4 text-center text-sm text-slate-500">No hay productos que coincidan.</li>
+                      )}
+                    </ul>
+                  )}
                 </span>
-              </label>
-              <label className="block text-xs font-bold uppercase text-slate-400">
-                Producto
-                <select
-                  required
-                  value={productoId}
-                  onChange={(event) => setProductoId(event.target.value ? Number(event.target.value) : '')}
-                  disabled={cargando}
-                  className="mt-2 w-full rounded-lg border border-white/10 bg-black/50 px-3 py-2.5 text-sm text-white normal-case outline-none focus:border-[#E50914]"
-                >
-                  <option value="">{cargando ? 'Cargando catálogo...' : 'Seleccionar producto'}</option>
-                  {productosFiltrados.map((producto) => {
-                    const enCarrito = carrito.find((item) => item.producto_id === producto.id)?.cantidad || 0;
-                    const disponible = Number(producto.stock_actual) - enCarrito;
-                    const precioPendiente = tipo === 'VENTA' && Number(producto.precio) <= 0;
-                    return <option key={producto.id} value={producto.id} disabled={disponible < 1 || precioPendiente}>{producto.nombre} · {precioPendiente ? 'precio pendiente' : `${disponible} disponibles`}</option>;
-                  })}
-                </select>
               </label>
               <label className="block text-xs font-bold uppercase text-slate-400">
                 Cantidad

@@ -172,13 +172,18 @@ export default function Home() {
         setVistaActiva={setVistaActiva} 
         onLogout={handleLogout} 
       />
-      <main className="min-w-0 flex-1 overflow-y-auto">
-        {vistaActiva === 'dashboard' && <DashboardView onNavigate={setVistaActiva} />}
-        {vistaActiva === 'productos' && <ProductosView />}
-        {vistaActiva === 'ventas' && <RegistrarVentaView />}
-        {vistaActiva === 'historial' && <InventarioView />}
-        {vistaActiva === 'reporte-ventas' && <ReportesInventarioView modo="diario" />}
-        {vistaActiva === 'pdf' && <ReportesInventarioView modo="mensual" />}
+      <main className="flex min-w-0 flex-1 flex-col">
+        <div className="min-h-screen flex-1">
+          {vistaActiva === 'dashboard' && <DashboardView onNavigate={setVistaActiva} />}
+          {vistaActiva === 'productos' && <ProductosView />}
+          {vistaActiva === 'ventas' && <RegistrarVentaView />}
+          {vistaActiva === 'historial' && <InventarioView />}
+          {vistaActiva === 'reporte-ventas' && <ReportesInventarioView modo="diario" />}
+          {vistaActiva === 'pdf' && <ReportesInventarioView modo="mensual" />}
+        </div>
+        <footer className="border-t border-slate-200 bg-white px-4 py-4 text-center text-xs text-slate-500 sm:px-8">
+          © {new Date().getFullYear()} WashRider. Todos los derechos reservados.
+        </footer>
       </main>
     </div>
   );

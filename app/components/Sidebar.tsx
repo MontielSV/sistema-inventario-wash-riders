@@ -46,7 +46,7 @@ export default function Sidebar({ vistaActiva, setVistaActiva, onLogout }: Sideb
                 onClick={() => setVistaActiva(item.id)}
                 className={`w-auto shrink-0 flex items-center gap-2 px-3 py-2.5 rounded-lg text-xs font-semibold transition-all lg:w-full lg:gap-3 lg:px-4 lg:py-3 ${
                   activo 
-                    ? 'bg-[#1f5a8a] text-white shadow-sm'
+                    ? 'border-l-4 border-blue-300 bg-[#1f5a8a] font-bold text-white shadow-md shadow-blue-950/15'
                     : 'text-slate-600 hover:bg-blue-50 hover:text-blue-900'
                 }`}
               >
