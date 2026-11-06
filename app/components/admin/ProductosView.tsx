@@ -42,7 +42,36 @@ export default function ProductosView() {
   };
 
   useEffect(() => {
-    cargarProductos();
+    let activo = true;
+    const sincronizarCatalogo = async () => {
+      setImportando(true);
+      try {
+        const response = await fetch('/api/productos/importar', { method: 'POST' });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'No se pudo integrar el catálogo WR Colombia.');
+        if (activo) {
+          setMensajeCarga(
+            `Catálogo WR integrado: ${data.agregados} agregados, ${data.existentes} ya existentes${data.retirados ? ` y ${data.retirados} productos Bolt retirados` : ''}.`
+          );
+        }
+      } catch (caught) {
+        if (activo) setMensajeCarga(caught instanceof Error ? caught.message : 'Error al integrar el catálogo.');
+      }
+
+      try {
+        const response = await fetch('/api/productos', { cache: 'no-store' });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'No se pudo cargar el catálogo.');
+        if (activo) setProductos(Array.isArray(data) ? data : []);
+      } catch (caught) {
+        if (activo) setMensajeCarga(caught instanceof Error ? caught.message : 'Error al cargar productos.');
+      } finally {
+        if (activo) setImportando(false);
+      }
+    };
+
+    void sincronizarCatalogo();
+    return () => { activo = false; };
   }, []);
 
   const abrirModal = (prod: Producto | null = null) => {
@@ -71,6 +100,7 @@ export default function ProductosView() {
     setErrorModal('');
 
     const payload = {
+      ...(editando ? { id: editando.id } : {}),
       codigo: codigo.trim(),
       nombre: nombre.trim(),
       categoria: 'General',
@@ -98,7 +128,7 @@ export default function ProductosView() {
     }
 
     try {
-      const url = editando ? `/api/productos/${editando.id}` : '/api/productos';
+      const url = '/api/productos';
       const method = editando ? 'PUT' : 'POST';
 
       const res = await fetch(url, {
@@ -123,38 +153,22 @@ export default function ProductosView() {
   };
 
   const handleEliminar = async (p: Producto) => {
-    if (!confirm(`¿Eliminar "${p.nombre}"? Esta acción no se puede deshacer.`)) return;
+    if (!confirm(`¿Retirar "${p.nombre}" del catálogo? Sus movimientos históricos se conservarán.`)) return;
 
     try {
-      const res = await fetch(`/api/productos/${p.id}`, { method: 'DELETE' });
+      const res = await fetch('/api/productos', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: p.id }),
+      });
       if (res.ok) {
         cargarProductos();
       } else {
-        alert('No se pudo eliminar el producto.');
+        const data = await res.json();
+        alert(data.error || 'No se pudo retirar el producto del catálogo.');
       }
     } catch {
       alert('Error al intentar eliminar.');
-    }
-  };
-
-  const importarCatalogo = async () => {
-    const confirmado = confirm(
-      'Se agregarán los productos WR Colombia que todavía no existan. Como la lista no incluye precios ni existencias, se crearán con precio $0, stock 0 y mínimo 4. No se modificarán productos existentes. ¿Continuar?'
-    );
-    if (!confirmado) return;
-
-    setImportando(true);
-    setMensajeCarga('');
-    try {
-      const response = await fetch('/api/productos/importar', { method: 'POST' });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'No se pudo agregar el catálogo.');
-      setMensajeCarga(`Catálogo procesado: ${data.agregados} agregados y ${data.existentes} ya existentes.`);
-      await cargarProductos();
-    } catch (caught) {
-      setMensajeCarga(caught instanceof Error ? caught.message : 'Error al cargar el catálogo.');
-    } finally {
-      setImportando(false);
     }
   };
 
@@ -173,14 +187,7 @@ export default function ProductosView() {
           <p className="text-sm text-slate-500">Administra tu catálogo y las cantidades disponibles.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => void importarCatalogo()}
-            disabled={importando}
-            className="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-white px-4 py-2.5 text-xs font-bold text-blue-800 transition-colors hover:bg-blue-50 disabled:opacity-50"
-          >
-            {importando ? 'Cargando lista...' : 'Cargar lista WR Colombia'}
-          </button>
+          {importando && <span role="status" className="self-center text-xs font-medium text-blue-700">Integrando catálogo WR Colombia...</span>}
           <button
             type="button"
             onClick={() => abrirModal(null)}
@@ -256,10 +263,10 @@ export default function ProductosView() {
                         </span>
                       </td>
                       <td className="space-x-2 px-4 py-3 text-right">
-                        <button type="button" aria-label={`Editar ${p.nombre}`} onClick={() => abrirModal(p)} className="rounded-md p-2 text-blue-800 hover:bg-blue-50">
+                        <button type="button" title="Editar producto" aria-label={`Editar ${p.nombre}`} onClick={() => abrirModal(p)} className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-blue-100 bg-blue-50 text-blue-800 transition-colors hover:bg-blue-100">
                           <PencilSquareIcon className="w-4 h-4" />
                         </button>
-                        <button type="button" aria-label={`Eliminar ${p.nombre}`} onClick={() => handleEliminar(p)} className="rounded-md p-2 text-red-700 hover:bg-red-50">
+                        <button type="button" title="Retirar del catálogo" aria-label={`Retirar ${p.nombre} del catálogo`} onClick={() => handleEliminar(p)} className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-rose-100 bg-rose-50 text-rose-700 transition-colors hover:bg-rose-100">
                           <TrashIcon className="w-4 h-4" />
                         </button>
                       </td>

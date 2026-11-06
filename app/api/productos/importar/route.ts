@@ -17,30 +17,39 @@ export async function POST(request: Request) {
     await ensureInventoryTables();
     client = await pool.connect();
     await client.query('BEGIN');
+    await client.query("SELECT pg_advisory_xact_lock(hashtext('wr-colombia-catalog-v1'))");
 
     let agregados = 0;
     let existentes = 0;
-    for (const [indice, nombre] of WR_PRODUCT_NAMES.entries()) {
-      const codigo = `WRC-${String(indice + 1).padStart(3, '0')}`;
-      const encontrado = await client.query(
-        'SELECT id FROM productos WHERE LOWER(nombre) = LOWER($1) OR LOWER(codigo) = LOWER($2) LIMIT 1',
-        [nombre, codigo]
-      );
-      if (encontrado.rowCount) {
-        existentes += 1;
-        continue;
-      }
-
-      await client.query(
-        `INSERT INTO productos (codigo, nombre, categoria, stock_actual, stock_minimo, precio)
-         VALUES ($1, $2, 'General', 0, 4, 0)`,
-        [codigo, nombre]
-      );
-      agregados += 1;
-    }
+    const retirado = await client.query(
+      `UPDATE productos SET disponible = FALSE
+      WHERE COALESCE(disponible, TRUE) = TRUE
+         AND (LOWER(BTRIM(nombre)) = 'bolt' OR LOWER(BTRIM(codigo)) = 'bolt')
+       RETURNING id`
+    );
+    const codigos = WR_PRODUCT_NAMES.map((_, indice) => `WRC-${String(indice + 1).padStart(3, '0')}`);
+    const inserted = await client.query(
+      `INSERT INTO productos (codigo, nombre, categoria, stock_actual, stock_minimo, precio)
+       SELECT catalogo.codigo, catalogo.nombre, 'General', 0, 4, 0
+       FROM UNNEST($1::text[], $2::text[]) AS catalogo(codigo, nombre)
+       WHERE NOT EXISTS (
+         SELECT 1 FROM productos existente
+         WHERE LOWER(BTRIM(existente.nombre)) = LOWER(BTRIM(catalogo.nombre))
+            OR LOWER(BTRIM(existente.codigo)) = LOWER(BTRIM(catalogo.codigo))
+       )
+       RETURNING id`,
+      [codigos, WR_PRODUCT_NAMES]
+    );
+    agregados = inserted.rowCount || 0;
+    existentes = WR_PRODUCT_NAMES.length - agregados;
 
     await client.query('COMMIT');
-    return NextResponse.json({ agregados, existentes, total: WR_PRODUCT_NAMES.length }, { status: 201 });
+    return NextResponse.json({
+      agregados,
+      existentes,
+      retirados: retirado.rowCount || 0,
+      total: WR_PRODUCT_NAMES.length,
+    }, { status: 201 });
   } catch (error) {
     if (client) await client.query('ROLLBACK');
     console.error('Error al importar catálogo WR Colombia:', error);

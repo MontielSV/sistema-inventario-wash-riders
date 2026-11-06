@@ -6,7 +6,7 @@ import ProductosView from './components/admin/ProductosView';
 import InventarioView from './components/admin/InventarioView';
 import RegistrarVentaView from './components/admin/RegistrarVentaView';
 import ReportesInventarioView from './components/admin/ReportesInventarioView';
-import { CubeIcon, LockClosedIcon, ShieldCheckIcon, UserIcon } from '@heroicons/react/24/outline';
+import { CubeIcon, LockClosedIcon, UserIcon } from '@heroicons/react/24/outline';
 
 export default function Home() {
   const [autenticado, setAutenticado] = useState(false);
@@ -75,33 +75,16 @@ export default function Home() {
     return (
       <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#edf4fb] px-4 py-8 text-slate-900 sm:px-8">
         <div aria-hidden="true" className="absolute inset-x-0 top-0 h-1.5 bg-[#1f5a8a]" />
-        <div className="grid w-full max-w-5xl overflow-hidden rounded-2xl border border-[#d9e5ef] bg-white shadow-[0_28px_90px_-42px_rgba(17,54,88,0.35)] md:min-h-[560px] md:grid-cols-[0.9fr_1.1fr]">
-          <aside className="relative hidden flex-col justify-between overflow-hidden bg-[#123b60] p-10 text-white md:flex lg:p-12">
-            <div aria-hidden="true" className="absolute inset-0 opacity-20 [background-image:linear-gradient(rgba(255,255,255,0.18)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.18)_1px,transparent_1px)] [background-size:34px_34px]" />
-            <div className="relative">
-              <div className="flex items-center gap-3">
-                <span className="grid h-11 w-11 place-items-center rounded-lg border border-white/15 bg-white/10">
-                  <CubeIcon className="h-6 w-6 text-white" />
-                </span>
-                <span className="text-sm font-black uppercase tracking-[0.14em]">Wash Riders</span>
-              </div>
-              <div className="mt-20 max-w-xs">
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-200">Inventario</p>
-                <h1 className="mt-4 text-4xl font-black leading-tight">Panel de administración</h1>
-                <div className="mt-6 h-1 w-14 rounded-full bg-[#e50914]" />
-              </div>
-            </div>
-            <div className="relative flex items-center gap-2 border-t border-white/15 pt-5 text-xs font-medium text-blue-100">
-              <ShieldCheckIcon className="h-4 w-4" /> Acceso seguro para personal autorizado
-            </div>
-          </aside>
-
-          <section aria-labelledby="login-title" className="flex flex-col justify-center px-6 py-10 sm:px-12 md:px-12 lg:px-16">
-            <div className="mb-9 flex items-center gap-3 md:hidden">
+        <div className="w-full max-w-md rounded-xl border border-[#d9e5ef] bg-white px-6 py-8 shadow-[0_20px_65px_-36px_rgba(17,54,88,0.35)] sm:px-9">
+          <section aria-labelledby="login-title" className="flex flex-col justify-center">
+            <div className="mb-8 flex items-center gap-3">
               <span className="grid h-10 w-10 place-items-center rounded-lg bg-[#123b60] text-white">
                 <CubeIcon className="h-5 w-5" />
               </span>
-              <span className="text-sm font-black uppercase tracking-[0.12em] text-[#123b60]">Wash Riders</span>
+              <span>
+                <span className="block text-sm font-black uppercase tracking-[0.12em] text-[#123b60]">Wash Riders</span>
+                <span className="mt-0.5 block text-[10px] font-semibold uppercase tracking-wider text-slate-500">Inventario</span>
+              </span>
             </div>
 
             <div className="mb-8">

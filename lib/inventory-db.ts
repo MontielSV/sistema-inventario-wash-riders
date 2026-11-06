@@ -13,6 +13,7 @@ export async function ensureInventoryTables() {
     )
   `);
   await pool.query('ALTER TABLE productos ADD COLUMN IF NOT EXISTS codigo TEXT');
+  await pool.query('ALTER TABLE productos ADD COLUMN IF NOT EXISTS disponible BOOLEAN NOT NULL DEFAULT TRUE');
   await pool.query(`
     CREATE TABLE IF NOT EXISTS movimientos (
       id SERIAL PRIMARY KEY,

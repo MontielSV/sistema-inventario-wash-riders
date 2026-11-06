@@ -13,7 +13,7 @@ export async function GET(request: Request) {
   try {
     await ensureInventoryTables();
     const result = await pool.query(
-      'SELECT id, codigo, nombre, categoria, stock_actual, stock_minimo, precio FROM productos ORDER BY id DESC'
+      'SELECT id, codigo, nombre, categoria, stock_actual, stock_minimo, precio FROM productos WHERE COALESCE(disponible, TRUE) = TRUE ORDER BY id DESC'
     );
     return NextResponse.json(result.rows);
   } catch (error) {
@@ -130,5 +130,32 @@ export async function PUT(request: Request) {
   } catch (error) {
     console.error('Error al actualizar producto:', error);
     return NextResponse.json({ error: 'No se pudo actualizar el producto' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  if (!isAuthenticated(request)) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  }
+
+  try {
+    const body = await request.json();
+    const id = Number(body.id);
+    if (!Number.isInteger(id) || id < 1) {
+      return NextResponse.json({ error: 'El producto seleccionado no es válido' }, { status: 400 });
+    }
+
+    await ensureInventoryTables();
+    const result = await pool.query(
+      'UPDATE productos SET disponible = FALSE WHERE id = $1 AND COALESCE(disponible, TRUE) = TRUE RETURNING id',
+      [id]
+    );
+    if (!result.rowCount) {
+      return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 });
+    }
+    return NextResponse.json({ ok: true, id });
+  } catch (error) {
+    console.error('Error al retirar producto del catálogo:', error);
+    return NextResponse.json({ error: 'No se pudo retirar el producto del catálogo' }, { status: 500 });
   }
 }

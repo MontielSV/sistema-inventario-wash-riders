@@ -8,6 +8,7 @@ import {
   ExclamationTriangleIcon,
   Squares2X2Icon,
 } from '@heroicons/react/24/outline';
+import VentasLineChart from './VentasLineChart';
 
 interface Producto {
   id: number;
@@ -109,7 +110,7 @@ export default function DashboardView({ onNavigate }: DashboardViewProps) {
   const productoMasVendido = productosMasVendidos[0];
   const ahora = new Date();
   const mesActual = fechaHoy.slice(0, 7);
-  const diasEnMes = new Date(ahora.getFullYear(), ahora.getMonth() + 1, 0).getDate();
+  const diasEnMes = ahora.getDate();
   const ventasDelMes = movimientos.filter((movimiento) =>
     movimiento.tipo === 'SALIDA' &&
     movimiento.motivo_tipo === 'VENTA' &&
@@ -123,7 +124,6 @@ export default function DashboardView({ onNavigate }: DashboardViewProps) {
       .reduce((suma, movimiento) => suma + Number(movimiento.cantidad) * Number(movimiento.precio_unitario), 0);
     return { clave, dia: indice + 1, total };
   });
-  const mayorVentaDiaria = Math.max(...ventasDiarias.map((dia) => dia.total), 0);
   const ventasRecientesPorId = new Map<string, Movimiento[]>();
   movimientos.filter((movimiento) => movimiento.tipo === 'SALIDA' && movimiento.motivo_tipo === 'VENTA')
     .forEach((movimiento) => {
@@ -225,18 +225,15 @@ export default function DashboardView({ onNavigate }: DashboardViewProps) {
               </div>
               <ChartBarIcon className="h-5 w-5 text-blue-700" />
             </div>
-            <div className="mt-5 grid h-44 items-end gap-1 overflow-x-auto" style={{ gridTemplateColumns: `repeat(${diasEnMes}, minmax(12px, 1fr))` }} role="img" aria-label={`Gráfico de ingresos por día de ${mesActual}`}>
-              {ventasDiarias.map((dia) => (
-                <div key={dia.clave} className="flex h-full min-w-0 flex-col items-center justify-end gap-2" title={`${dia.clave}: ${formatoMoneda(dia.total)}`}>
-                  <div className="flex h-full w-full items-end rounded-t-sm bg-slate-50">
-                    <div
-                      className="w-full rounded-t-sm bg-blue-600 transition-[height]"
-                      style={{ height: dia.total > 0 && mayorVentaDiaria > 0 ? `${Math.max(5, (dia.total / mayorVentaDiaria) * 100)}%` : '0%' }}
-                    />
-                  </div>
-                  <span className="text-[9px] text-slate-500">{dia.dia}</span>
-                </div>
-              ))}
+            <div className="mt-4">
+              <VentasLineChart
+                descripcion={`Ingresos por día de ${mesActual}`}
+                puntos={ventasDiarias.map((dia) => ({
+                  etiqueta: String(dia.dia),
+                  valor: dia.total,
+                  detalle: `${dia.clave}: ${formatoMoneda(dia.total)}`,
+                }))}
+              />
             </div>
           </article>
 

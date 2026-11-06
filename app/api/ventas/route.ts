@@ -67,7 +67,7 @@ export async function POST(request: Request) {
 
     const productoIds = [...cantidadesPorProducto.keys()].sort((a, b) => a - b);
     const productos = await client.query(
-      'SELECT id, codigo, nombre, stock_actual, precio FROM productos WHERE id = ANY($1::int[]) ORDER BY id FOR UPDATE',
+      'SELECT id, codigo, nombre, stock_actual, precio FROM productos WHERE COALESCE(disponible, TRUE) = TRUE AND id = ANY($1::int[]) ORDER BY id FOR UPDATE',
       [productoIds]
     );
 

@@ -18,12 +18,12 @@ interface SidebarProps {
 
 export default function Sidebar({ vistaActiva, setVistaActiva, onLogout }: SidebarProps) {
   const menuItems = [
-    { id: 'dashboard', nombre: 'Inicio', icono: HomeIcon },
-    { id: 'productos', nombre: 'Productos', icono: CubeIcon },
-    { id: 'ventas', nombre: 'Registrar venta', icono: ShoppingCartIcon },
-    { id: 'historial', nombre: 'Historial', icono: ShoppingBagIcon },
-    { id: 'reporte-ventas', nombre: 'Reporte de ventas', icono: CurrencyDollarIcon },
-    { id: 'pdf', nombre: 'Reporte mensual', icono: ChartBarIcon },
+    { id: 'dashboard', nombre: 'Inicio', icono: HomeIcon, tono: 'text-sky-700' },
+    { id: 'productos', nombre: 'Productos', icono: CubeIcon, tono: 'text-blue-800' },
+    { id: 'ventas', nombre: 'Registrar venta', icono: ShoppingCartIcon, tono: 'text-emerald-700' },
+    { id: 'historial', nombre: 'Historial', icono: ShoppingBagIcon, tono: 'text-amber-700' },
+    { id: 'reporte-ventas', nombre: 'Reporte de ventas', icono: CurrencyDollarIcon, tono: 'text-teal-700' },
+    { id: 'pdf', nombre: 'Reporte mensual', icono: ChartBarIcon, tono: 'text-indigo-700' },
   ];
 
   return (
@@ -44,13 +44,13 @@ export default function Sidebar({ vistaActiva, setVistaActiva, onLogout }: Sideb
               <button
                 key={item.id}
                 onClick={() => setVistaActiva(item.id)}
-                className={`w-auto shrink-0 flex items-center gap-2 px-3 py-2.5 rounded-lg text-[10px] font-bold uppercase transition-all lg:w-full lg:gap-3 lg:px-4 lg:py-3 lg:text-xs ${
+                className={`w-auto shrink-0 flex items-center gap-2 px-3 py-2.5 rounded-lg text-xs font-semibold transition-all lg:w-full lg:gap-3 lg:px-4 lg:py-3 ${
                   activo 
                     ? 'bg-[#1f5a8a] text-white shadow-sm'
                     : 'text-slate-600 hover:bg-blue-50 hover:text-blue-900'
                 }`}
               >
-                <Icono className="w-5 h-5 shrink-0" />
+                <Icono className={`h-5 w-5 shrink-0 ${activo ? 'text-white' : item.tono}`} />
                 {item.nombre}
               </button>
             );

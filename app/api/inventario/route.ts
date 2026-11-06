@@ -64,7 +64,7 @@ export async function POST(request: Request) {
     client = await pool.connect();
     await client.query('BEGIN');
     const producto = await client.query(
-      'SELECT id, stock_actual, precio FROM productos WHERE id = $1 FOR UPDATE',
+      'SELECT id, stock_actual, precio FROM productos WHERE id = $1 AND COALESCE(disponible, TRUE) = TRUE FOR UPDATE',
       [productoId]
     );
 
