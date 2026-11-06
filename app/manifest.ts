@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: 'Gestión de productos, existencias y movimientos de inventario.',
     start_url: '/',
     display: 'standalone',
-    background_color: '#000000',
-    theme_color: '#000000',
+    background_color: '#ffffff',
+    theme_color: '#061b5c',
     icons: [
       {
         src: '/wash-riders-192.png',
