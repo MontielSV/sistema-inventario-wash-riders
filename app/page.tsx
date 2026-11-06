@@ -6,7 +6,7 @@ import ProductosView from './components/admin/ProductosView';
 import InventarioView from './components/admin/InventarioView';
 import RegistrarVentaView from './components/admin/RegistrarVentaView';
 import ReportesInventarioView from './components/admin/ReportesInventarioView';
-import { CubeIcon, LockClosedIcon, UserIcon } from '@heroicons/react/24/outline';
+import { CubeIcon, LockClosedIcon, MoonIcon, SunIcon, UserIcon } from '@heroicons/react/24/outline';
 
 type Tema = 'light' | 'dark';
 
@@ -87,24 +87,35 @@ export default function Home() {
   // 1. Si no está autenticado, muestra la Pantalla de Login
   if (!autenticado) {
     return (
-      <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#edf4fb] px-4 py-8 text-slate-900 sm:px-8">
+      <main className={`relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8 sm:px-8 ${tema === 'dark' ? 'bg-[#081a2b] text-slate-100' : 'bg-[#dceeff] text-slate-900'}`}>
         <div aria-hidden="true" className="absolute inset-x-0 top-0 h-1.5 bg-[#1f5a8a]" />
-        <div className="w-full max-w-md rounded-xl border border-[#d9e5ef] bg-white px-6 py-8 shadow-[0_20px_65px_-36px_rgba(17,54,88,0.35)] sm:px-9">
+        <div className={`w-full max-w-md rounded-xl border px-6 py-8 shadow-[0_20px_65px_-36px_rgba(17,54,88,0.35)] sm:px-9 ${tema === 'dark' ? 'border-slate-700 bg-[#10263b]' : 'border-blue-200 bg-[#f2f8ff]'}`}>
           <section aria-labelledby="login-title" className="flex flex-col justify-center">
-            <div className="mb-8 flex items-center gap-3">
+            <div className="mb-8 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
               <span className="grid h-10 w-10 place-items-center rounded-lg bg-[#123b60] text-white">
                 <CubeIcon className="h-5 w-5" />
               </span>
               <span>
                 <span className="block text-sm font-black uppercase tracking-[0.12em] text-[#123b60]">Wash Riders</span>
-                <span className="mt-0.5 block text-[10px] font-semibold uppercase tracking-wider text-slate-500">Inventario</span>
+                <span className={`mt-0.5 block text-[10px] font-semibold uppercase tracking-wider ${tema === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Inventario</span>
               </span>
+              </div>
+              <button
+                type="button"
+                onClick={cambiarTema}
+                aria-label={`Cambiar a modo ${tema === 'light' ? 'oscuro' : 'claro'}`}
+                className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-bold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 ${tema === 'dark' ? 'border-slate-600 bg-slate-800 text-blue-100 hover:bg-slate-700' : 'border-blue-200 bg-blue-50 text-blue-900 hover:bg-blue-100'}`}
+              >
+                {tema === 'light' ? <MoonIcon aria-hidden="true" className="h-4 w-4" /> : <SunIcon aria-hidden="true" className="h-4 w-4" />}
+                Modo {tema === 'light' ? 'oscuro' : 'claro'}
+              </button>
             </div>
 
             <div className="mb-8">
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#2c6b9b]">Bienvenido</p>
-              <h2 id="login-title" className="mt-2 text-3xl font-black tracking-tight text-[#183b58]">Iniciar sesión</h2>
-              <p className="mt-2 text-sm text-slate-500">Ingresa tus credenciales para continuar.</p>
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-700">Bienvenido</p>
+              <h2 id="login-title" className={`mt-2 text-3xl font-black tracking-tight ${tema === 'dark' ? 'text-blue-100' : 'text-[#123b60]'}`}>Iniciar sesión</h2>
+              <p className={`mt-2 text-sm ${tema === 'dark' ? 'text-slate-300' : 'text-slate-600'}`}>Ingresa tus credenciales para continuar.</p>
             </div>
 
             {errorLogin && (
@@ -115,7 +126,7 @@ export default function Home() {
 
             <form onSubmit={handleLogin} className="space-y-5">
               <div>
-                <label htmlFor="login-usuario" className="mb-2 block text-sm font-semibold text-slate-700">Usuario</label>
+                <label htmlFor="login-usuario" className={`mb-2 block text-sm font-semibold ${tema === 'dark' ? 'text-slate-200' : 'text-slate-700'}`}>Usuario</label>
                 <div className="relative">
                   <UserIcon aria-hidden="true" className="absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-[#64829b]" />
                   <input
@@ -127,13 +138,13 @@ export default function Home() {
                     placeholder="Ingresa tu usuario"
                     value={usuario}
                     onChange={(e) => setUsuario(e.target.value)}
-                    className="w-full rounded-lg border border-[#d5e1eb] bg-white py-3 pl-11 pr-4 text-sm text-slate-900 outline-none transition focus:border-[#3478a9] focus:ring-4 focus:ring-blue-100"
+                    className={`w-full rounded-lg border py-3 pl-11 pr-4 text-sm outline-none transition focus:border-[#3478a9] focus:ring-4 focus:ring-blue-100 ${tema === 'dark' ? 'border-slate-600 bg-[#0b1c2d] text-slate-100 placeholder:text-slate-400' : 'border-blue-200 bg-[#eaf4ff] text-slate-900 placeholder:text-slate-500'}`}
                   />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="login-password" className="mb-2 block text-sm font-semibold text-slate-700">Contraseña</label>
+                <label htmlFor="login-password" className={`mb-2 block text-sm font-semibold ${tema === 'dark' ? 'text-slate-200' : 'text-slate-700'}`}>Contraseña</label>
                 <div className="relative">
                   <LockClosedIcon aria-hidden="true" className="absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-[#64829b]" />
                   <input
@@ -145,7 +156,7 @@ export default function Home() {
                     placeholder="Ingresa tu contraseña"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full rounded-lg border border-[#d5e1eb] bg-white py-3 pl-11 pr-4 text-sm text-slate-900 outline-none transition focus:border-[#3478a9] focus:ring-4 focus:ring-blue-100"
+                    className={`w-full rounded-lg border py-3 pl-11 pr-4 text-sm outline-none transition focus:border-[#3478a9] focus:ring-4 focus:ring-blue-100 ${tema === 'dark' ? 'border-slate-600 bg-[#0b1c2d] text-slate-100 placeholder:text-slate-400' : 'border-blue-200 bg-[#eaf4ff] text-slate-900 placeholder:text-slate-500'}`}
                   />
                 </div>
               </div>
@@ -160,16 +171,16 @@ export default function Home() {
               </button>
             </form>
 
-            <div className="mt-7 border-t border-slate-100 pt-5">
+            <div className={`mt-7 border-t pt-5 ${tema === 'dark' ? 'border-slate-700' : 'border-blue-100'}`}>
               {process.env.NEXT_PUBLIC_DEVELOPER_EMAIL ? (
                 <a
                   href={`mailto:${process.env.NEXT_PUBLIC_DEVELOPER_EMAIL}?subject=Soporte%20Wash%20Riders`}
-                  className="text-sm font-semibold text-[#2c6b9b] underline decoration-blue-200 underline-offset-4 transition hover:text-[#123b60]"
+                  className="text-sm font-semibold text-blue-700 underline decoration-blue-200 underline-offset-4 transition hover:text-blue-900"
                 >
                   Contactar soporte
                 </a>
               ) : (
-                <p className="text-xs text-slate-400">Acceso restringido al personal autorizado.</p>
+                <p className={`text-xs ${tema === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Acceso restringido al personal autorizado.</p>
               )}
             </div>
           </section>
