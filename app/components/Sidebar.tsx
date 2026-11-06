@@ -60,7 +60,7 @@ export default function Sidebar({ vistaActiva, setVistaActiva, onLogout, tema, o
                 onClick={() => setVistaActiva(item.id)}
                 className={`w-auto shrink-0 flex items-center gap-2 px-3 py-2.5 rounded-lg text-xs font-semibold transition-all lg:w-full lg:gap-3 lg:px-4 lg:py-3 ${
                   activo 
-                    ? 'border-l-4 border-white bg-yellow-300 font-bold text-[#123b60] shadow-md shadow-black/20'
+                    ? 'border-l-4 border-white bg-white font-bold text-[#123b60] shadow-md shadow-black/20'
                     : 'text-blue-50 hover:bg-[#1f5a8a] hover:text-white'
                 }`}
               >
