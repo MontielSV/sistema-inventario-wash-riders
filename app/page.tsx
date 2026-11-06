@@ -5,7 +5,7 @@ import DashboardView from './components/admin/DashboardView';
 import ProductosView from './components/admin/ProductosView';
 import InventarioView from './components/admin/InventarioView';
 import RegistrarVentaView from './components/admin/RegistrarVentaView';
-import ReportePDFView from './components/ReportePDFView';
+import ReportesInventarioView from './components/admin/ReportesInventarioView';
 import { CubeIcon, LockClosedIcon, ShieldCheckIcon, UserIcon } from '@heroicons/react/24/outline';
 
 export default function Home() {
@@ -183,18 +183,19 @@ export default function Home() {
 
   // 2. Si está autenticado, muestra el Panel con Sidebar Lateral
   return (
-    <div className="flex min-h-screen flex-col bg-[#030303] lg:flex-row">
+    <div className="flex min-h-screen flex-col bg-slate-50 lg:flex-row">
       <Sidebar 
         vistaActiva={vistaActiva} 
         setVistaActiva={setVistaActiva} 
         onLogout={handleLogout} 
       />
       <main className="min-w-0 flex-1 overflow-y-auto">
-        {vistaActiva === 'dashboard' && <DashboardView />}
+        {vistaActiva === 'dashboard' && <DashboardView onNavigate={setVistaActiva} />}
         {vistaActiva === 'productos' && <ProductosView />}
         {vistaActiva === 'ventas' && <RegistrarVentaView />}
         {vistaActiva === 'historial' && <InventarioView />}
-        {vistaActiva === 'pdf' && <ReportePDFView />}
+        {vistaActiva === 'reporte-ventas' && <ReportesInventarioView modo="diario" />}
+        {vistaActiva === 'pdf' && <ReportesInventarioView modo="mensual" />}
       </main>
     </div>
   );

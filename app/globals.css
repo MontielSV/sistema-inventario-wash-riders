@@ -1,13 +1,13 @@
 @import "tailwindcss";
 
 html, body {
-  background-color: #030303;
-  color: #fff;
+  background-color: #f3f6fa;
+  color: #1e293b;
   margin: 0;
   padding: 0;
   width: 100%;
   min-height: 100vh;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), sans-serif;
 }
 
 @media print {
@@ -28,4 +28,112 @@ html, body {
 .overflow-x-auto::-webkit-scrollbar-thumb {
   background: #333333;
   border-radius: 4px;
+}
+
+.inventory-light {
+  color-scheme: light;
+  color: #1e293b;
+}
+
+.inventory-light[class~="bg-[#030303]"] {
+  background-color: #f3f6fa !important;
+}
+
+.inventory-light [class~="bg-[#0f0f0f]"],
+.inventory-light [class~="bg-[#0f0f0f]/95"] {
+  background-color: #fff !important;
+}
+
+.inventory-light [class~="bg-black/60"],
+.inventory-light [class~="bg-black/50"],
+.inventory-light [class~="bg-black/40"],
+.inventory-light [class~="bg-black/30"] {
+  background-color: #f8fafc !important;
+}
+
+.inventory-light [class~="bg-zinc-800"] {
+  background-color: #f1f5f9 !important;
+}
+
+.inventory-light [class~="text-white"] {
+  color: #1e293b !important;
+}
+
+.inventory-light [class~="bg-[#E50914]"],
+.inventory-light [class~="bg-red-700"] {
+  background-color: #1f5a8a !important;
+  color: #fff !important;
+}
+
+.inventory-light [class~="text-[#E50914]"] {
+  color: #1f5a8a !important;
+}
+
+.inventory-light [class~="border-[#E50914]"],
+.inventory-light [class~="focus:border-[#E50914]"]:focus {
+  border-color: #3478a9 !important;
+}
+
+.inventory-light [class~="border-white/10"],
+.inventory-light [class~="border-white/5"] {
+  border-color: #dbe4ed !important;
+}
+
+.inventory-light [class~="divide-white/5"] > :not([hidden]) ~ :not([hidden]) {
+  border-color: #e7edf3 !important;
+}
+
+.inventory-light [class~="text-slate-300"] {
+  color: #475569 !important;
+}
+
+.inventory-light [class~="text-slate-400"],
+.inventory-light [class~="text-slate-500"] {
+  color: #64748b !important;
+}
+
+.inventory-light [class~="text-emerald-300"],
+.inventory-light [class~="text-emerald-400"] {
+  color: #087e65 !important;
+}
+
+.inventory-light [class~="text-sky-300"],
+.inventory-light [class~="text-sky-400"] {
+  color: #0369a1 !important;
+}
+
+.inventory-light [class~="text-amber-300"],
+.inventory-light [class~="text-amber-400"] {
+  color: #a15c07 !important;
+}
+
+.inventory-light [class~="text-red-300"],
+.inventory-light [class~="text-red-400"] {
+  color: #b42318 !important;
+}
+
+.inventory-light [class~="bg-white/5"],
+.inventory-light [class~="bg-white/[0.03]"],
+.inventory-light [class~="bg-white/[0.02]"] {
+  background-color: #f1f5f9 !important;
+}
+
+.inventory-light [class~="bg-red-950/30"],
+.inventory-light [class~="bg-red-950/50"],
+.inventory-light [class~="bg-red-950/60"],
+.inventory-light [class~="bg-red-950/80"] {
+  background-color: #fef2f2 !important;
+}
+
+.inventory-light [class~="bg-emerald-950/80"] {
+  background-color: #ecfdf5 !important;
+}
+
+.inventory-light [class~="hover:bg-white/5"]:hover,
+.inventory-light [class~="hover:bg-white/[0.02]"]:hover {
+  background-color: #eff6ff !important;
+}
+
+.inventory-light [class~="hover:text-white"]:hover {
+  color: #123b60 !important;
 }

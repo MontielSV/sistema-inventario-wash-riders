@@ -13,8 +13,16 @@ interface ItemVenta {
 }
 
 function createTrackingCode() {
-  const date = new Date().toISOString().slice(0, 10).replaceAll('-', '');
-  return `WR-${date}-${randomUUID().slice(0, 8).toUpperCase()}`;
+  const dateParts = new Intl.DateTimeFormat('en', {
+    timeZone: 'America/Bogota',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date());
+  const date = ['year', 'month', 'day']
+    .map((type) => dateParts.find((part) => part.type === type)?.value || '')
+    .join('');
+  return `WR-${date}-${randomUUID().slice(0, 12).toUpperCase()}`;
 }
 
 export async function POST(request: Request) {
@@ -75,6 +83,9 @@ export async function POST(request: Request) {
           new Error(`Stock insuficiente para "${producto.nombre}". Disponible: ${producto.stock_actual}, solicitado: ${cantidad}.`),
           { status: 409 }
         );
+      }
+      if (tipo === 'VENTA' && Number(producto.precio) <= 0) {
+        throw Object.assign(new Error(`Asigna un precio a "${producto.nombre}" antes de venderlo.`), { status: 409 });
       }
     }
 

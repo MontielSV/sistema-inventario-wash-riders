@@ -14,7 +14,6 @@ interface Producto {
   id: number;
   codigo: string | null;
   nombre: string;
-  categoria: string;
   precio: number;
   stock_actual: number;
 }
@@ -65,7 +64,7 @@ export default function RegistrarVentaView() {
     ? Number(productoSeleccionado.stock_actual) - cantidadEnCarrito
     : 0;
   const productosFiltrados = productos.filter((producto) =>
-    `${producto.codigo || ''} ${producto.nombre} ${producto.categoria || ''}`
+    `${producto.codigo || ''} ${producto.nombre}`
       .toLocaleLowerCase()
       .includes(busqueda.trim().toLocaleLowerCase())
   );
@@ -141,15 +140,15 @@ export default function RegistrarVentaView() {
   };
 
   return (
-    <section className="min-h-screen bg-[#030303] p-4 text-white md:p-8">
+    <section className="inventory-light min-h-screen bg-[#030303] p-4 text-white md:p-8">
       <div className="mx-auto max-w-7xl space-y-7">
         <header className="flex flex-col gap-4 border-b border-white/10 pb-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-emerald-400">Operación de inventario</p>
             <h1 className="mt-2 flex items-center gap-3 text-3xl font-black md:text-4xl">
-              <ShoppingCartIcon className="h-8 w-8 text-[#E50914]" /> Registrar venta o salida
+              <ShoppingCartIcon className="h-8 w-8 text-[#E50914]" /> Registrar venta
             </h1>
-            <p className="mt-2 text-sm text-slate-400">Agrega varios productos y registra todo en un solo movimiento.</p>
+            <p className="mt-2 text-sm text-slate-400">Registra ventas o salidas de uno o varios productos.</p>
           </div>
           <button
             type="button"
@@ -175,7 +174,7 @@ export default function RegistrarVentaView() {
                     type="search"
                     value={busqueda}
                     onChange={(event) => setBusqueda(event.target.value)}
-                    placeholder="Nombre, código o sección"
+                    placeholder="Buscar por nombre o código"
                     className="w-full rounded-lg border border-white/10 bg-black/50 py-2.5 pl-10 pr-3 text-sm text-white normal-case outline-none focus:border-[#E50914]"
                   />
                 </span>
@@ -193,11 +192,8 @@ export default function RegistrarVentaView() {
                   {productosFiltrados.map((producto) => {
                     const enCarrito = carrito.find((item) => item.producto_id === producto.id)?.cantidad || 0;
                     const disponible = Number(producto.stock_actual) - enCarrito;
-                    return (
-                      <option key={producto.id} value={producto.id} disabled={disponible < 1}>
-                        {producto.categoria || 'General'} · {producto.nombre} · {disponible} disponibles
-                      </option>
-                    );
+                    const precioPendiente = tipo === 'VENTA' && Number(producto.precio) <= 0;
+                    return <option key={producto.id} value={producto.id} disabled={disponible < 1 || precioPendiente}>{producto.nombre} · {precioPendiente ? 'precio pendiente' : `${disponible} disponibles`}</option>;
                   })}
                 </select>
               </label>
@@ -218,14 +214,14 @@ export default function RegistrarVentaView() {
             {productoSeleccionado && (
               <div className="flex flex-wrap items-center justify-between gap-3 border-y border-white/10 py-3 text-sm">
                 <span className="text-slate-300">{productoSeleccionado.nombre} <span className="text-slate-500">({productoSeleccionado.codigo || 'Sin código'})</span></span>
-                <span className="font-bold text-emerald-300">{disponibleParaAgregar} disponibles · {formatoMoneda(Number(productoSeleccionado.precio))}</span>
+                <span className="font-bold text-emerald-300">{tipo === 'VENTA' && Number(productoSeleccionado.precio) <= 0 ? 'Asigna el precio en Productos antes de vender' : `${disponibleParaAgregar} disponibles · ${formatoMoneda(Number(productoSeleccionado.precio))}`}</span>
               </div>
             )}
 
             <button
               type="button"
               onClick={agregarProducto}
-              disabled={!productoSeleccionado || cantidad < 1 || cantidad > disponibleParaAgregar}
+              disabled={!productoSeleccionado || cantidad < 1 || cantidad > disponibleParaAgregar || (tipo === 'VENTA' && Number(productoSeleccionado.precio) <= 0)}
               className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-40"
             >
               <PlusIcon className="h-4 w-4" /> Agregar al carrito
@@ -244,7 +240,7 @@ export default function RegistrarVentaView() {
                       <tr key={item.producto_id}>
                         <td className="px-4 py-3">
                           <span className="block font-semibold">{producto.nombre}</span>
-                          <span className="text-xs text-slate-500">{producto.categoria || 'General'} · {producto.codigo || 'Sin código'}</span>
+                          <span className="text-xs text-slate-500">{producto.codigo || 'Sin código'}</span>
                         </td>
                         <td className="px-4 py-3">
                           <input

@@ -4,7 +4,9 @@ import {
   CubeIcon, 
   ShoppingBagIcon, 
   ShoppingCartIcon,
-  DocumentArrowDownIcon, 
+  DocumentArrowDownIcon,
+  CurrencyDollarIcon,
+  ChartBarIcon,
   ArrowRightOnRectangleIcon 
 } from '@heroicons/react/24/outline';
 
@@ -19,17 +21,18 @@ export default function Sidebar({ vistaActiva, setVistaActiva, onLogout }: Sideb
     { id: 'dashboard', nombre: 'Inicio', icono: HomeIcon },
     { id: 'productos', nombre: 'Productos', icono: CubeIcon },
     { id: 'ventas', nombre: 'Registrar venta', icono: ShoppingCartIcon },
-    { id: 'historial', nombre: 'Historial Compras/Ventas', icono: ShoppingBagIcon },
-    { id: 'pdf', nombre: 'PDF Mensual / Reportes', icono: DocumentArrowDownIcon },
+    { id: 'historial', nombre: 'Historial', icono: ShoppingBagIcon },
+    { id: 'reporte-ventas', nombre: 'Reporte de ventas', icono: CurrencyDollarIcon },
+    { id: 'pdf', nombre: 'Reporte mensual', icono: ChartBarIcon },
   ];
 
   return (
-    <aside className="w-full bg-[#0c0c0c] border-b border-white/10 p-3 text-white print:hidden lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:min-h-screen lg:border-b-0 lg:border-r lg:p-4 lg:flex lg:flex-col lg:justify-between">
+    <aside className="w-full border-b border-slate-200 bg-white p-3 text-slate-900 print:hidden lg:sticky lg:top-0 lg:flex lg:h-screen lg:min-h-screen lg:w-64 lg:flex-col lg:justify-between lg:border-b-0 lg:border-r lg:p-4">
       <div className="space-y-3 lg:space-y-6">
         {/* Logo / Encabezado */}
         <div className="px-3 py-2">
-          <h2 className="text-xl font-black italic tracking-tighter text-[#E50914]">WASH RIDERS</h2>
-          <p className="text-[10px] text-slate-400 uppercase tracking-widest">Sistema de Inventarios</p>
+          <h2 className="text-xl font-black tracking-tight text-[#123b60]">WASH RIDERS</h2>
+          <p className="text-[10px] uppercase tracking-widest text-slate-500">Sistema de inventario</p>
         </div>
 
         {/* Menú de Opciones */}
@@ -43,8 +46,8 @@ export default function Sidebar({ vistaActiva, setVistaActiva, onLogout }: Sideb
                 onClick={() => setVistaActiva(item.id)}
                 className={`w-auto shrink-0 flex items-center gap-2 px-3 py-2.5 rounded-lg text-[10px] font-bold uppercase transition-all lg:w-full lg:gap-3 lg:px-4 lg:py-3 lg:text-xs ${
                   activo 
-                    ? 'bg-[#E50914] text-white shadow-lg shadow-red-950/40' 
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                    ? 'bg-[#1f5a8a] text-white shadow-sm'
+                    : 'text-slate-600 hover:bg-blue-50 hover:text-blue-900'
                 }`}
               >
                 <Icono className="w-5 h-5 shrink-0" />
@@ -58,7 +61,7 @@ export default function Sidebar({ vistaActiva, setVistaActiva, onLogout }: Sideb
       {/* Botón de Cerrar Sesión */}
       <button
         onClick={onLogout}
-        className="mt-3 w-full flex items-center gap-3 px-4 py-2.5 lg:py-3 rounded-lg text-xs font-bold uppercase text-red-400 hover:bg-red-950/30 transition-all border border-red-500/20 lg:mt-0"
+        className="mt-3 flex w-full items-center gap-3 rounded-lg border border-slate-200 px-4 py-2.5 text-xs font-bold uppercase text-slate-600 transition-all hover:bg-slate-50 hover:text-slate-900 lg:mt-0 lg:py-3"
       >
         <ArrowRightOnRectangleIcon className="w-5 h-5 shrink-0" />
         Cerrar Sesión

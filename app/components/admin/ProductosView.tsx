@@ -15,16 +15,16 @@ interface Producto {
 export default function ProductosView() {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [busqueda, setBusqueda] = useState('');
-  const [categoriaActiva, setCategoriaActiva] = useState('');
   const [modalAbierto, setModalAbierto] = useState(false);
   const [editando, setEditando] = useState<Producto | null>(null);
   const [guardando, setGuardando] = useState(false);
+  const [importando, setImportando] = useState(false);
+  const [mensajeCarga, setMensajeCarga] = useState('');
   const [errorModal, setErrorModal] = useState('');
 
   // Formulario
   const [codigo, setCodigo] = useState('');
   const [nombre, setNombre] = useState('');
-  const [categoria, setCategoria] = useState('General');
   const [precio, setPrecio] = useState('0');
   const [stockActual, setStockActual] = useState('0');
   const [stockMinimo, setStockMinimo] = useState('4');
@@ -51,7 +51,6 @@ export default function ProductosView() {
       setEditando(prod);
       setCodigo(prod.codigo || '');
       setNombre(prod.nombre || '');
-      setCategoria(prod.categoria || 'General');
       setPrecio(prod.precio.toString());
       setStockActual(prod.stock_actual.toString());
       setStockMinimo(prod.stock_minimo.toString());
@@ -59,7 +58,6 @@ export default function ProductosView() {
       setEditando(null);
       setCodigo('');
       setNombre('');
-      setCategoria('General');
       setPrecio('0');
       setStockActual('0');
       setStockMinimo('4');
@@ -75,14 +73,14 @@ export default function ProductosView() {
     const payload = {
       codigo: codigo.trim(),
       nombre: nombre.trim(),
-      categoria: categoria.trim(),
+      categoria: 'General',
       precio: parseFloat(precio),
       stock_actual: parseInt(stockActual, 10),
       stock_minimo: parseInt(stockMinimo, 10),
     };
 
-    if (!payload.codigo || !payload.nombre || !payload.categoria) {
-      setErrorModal('El código, el nombre y la sección son obligatorios.');
+    if (!payload.codigo || !payload.nombre) {
+      setErrorModal('El código y el nombre son obligatorios.');
       setGuardando(false);
       return;
     }
@@ -139,42 +137,61 @@ export default function ProductosView() {
     }
   };
 
-  const categorias = Array.from(
-    new Map(
-      productos
-        .map((producto) => producto.categoria?.trim())
-        .filter((nombreCategoria): nombreCategoria is string => Boolean(nombreCategoria))
-        .map((nombreCategoria) => [nombreCategoria.toLocaleLowerCase(), nombreCategoria])
-    ).values()
-  ).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
+  const importarCatalogo = async () => {
+    const confirmado = confirm(
+      'Se agregarán los productos WR Colombia que todavía no existan. Como la lista no incluye precios ni existencias, se crearán con precio $0, stock 0 y mínimo 4. No se modificarán productos existentes. ¿Continuar?'
+    );
+    if (!confirmado) return;
+
+    setImportando(true);
+    setMensajeCarga('');
+    try {
+      const response = await fetch('/api/productos/importar', { method: 'POST' });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'No se pudo agregar el catálogo.');
+      setMensajeCarga(`Catálogo procesado: ${data.agregados} agregados y ${data.existentes} ya existentes.`);
+      await cargarProductos();
+    } catch (caught) {
+      setMensajeCarga(caught instanceof Error ? caught.message : 'Error al cargar el catálogo.');
+    } finally {
+      setImportando(false);
+    }
+  };
 
   const filtrados = productos
-    .filter(
-      (p) =>
-        p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-        (p.codigo || '').toLowerCase().includes(busqueda.toLowerCase()) ||
-        (p.categoria || '').toLowerCase().includes(busqueda.toLowerCase())
+    .filter((p) =>
+      p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+      (p.codigo || '').toLowerCase().includes(busqueda.toLowerCase())
     )
-    .filter((p) => !categoriaActiva || p.categoria?.toLocaleLowerCase() === categoriaActiva.toLocaleLowerCase())
-    .sort((a, b) =>
-      (a.categoria || 'General').localeCompare(b.categoria || 'General', 'es', { sensitivity: 'base' }) ||
-      a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' })
-    );
+    .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
 
   return (
-    <div className="min-h-screen bg-[#030303] text-white p-4 md:p-8 font-sans space-y-6">
+    <div className="min-h-screen bg-slate-50 p-4 font-sans text-slate-900 md:p-8">
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-white/10">
         <div>
-          <h1 className="text-3xl font-black italic tracking-tighter text-white">Productos</h1>
-          <p className="text-xs text-slate-400">Catálogo por secciones e inventario disponible</p>
+          <h1 className="text-3xl font-black tracking-tight text-slate-900">Productos</h1>
+          <p className="text-sm text-slate-500">Administra tu catálogo y las cantidades disponibles.</p>
         </div>
-        <button
-          onClick={() => abrirModal(null)}
-          className="bg-[#E50914] hover:bg-red-700 text-white font-black px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all flex items-center gap-2"
-        >
-          <PlusIcon className="w-5 h-5" /> Nuevo producto
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => void importarCatalogo()}
+            disabled={importando}
+            className="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-white px-4 py-2.5 text-xs font-bold text-blue-800 transition-colors hover:bg-blue-50 disabled:opacity-50"
+          >
+            {importando ? 'Cargando lista...' : 'Cargar lista WR Colombia'}
+          </button>
+          <button
+            type="button"
+            onClick={() => abrirModal(null)}
+            className="inline-flex items-center gap-2 rounded-lg bg-[#1f5a8a] px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-[#174a74]"
+          >
+            <PlusIcon className="h-5 w-5" /> Nuevo producto
+          </button>
+        </div>
       </header>
+
+      {mensajeCarga && <p role="status" className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900">{mensajeCarga}</p>}
 
       <div className="flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -182,72 +199,35 @@ export default function ProductosView() {
             <MagnifyingGlassIcon className="w-5 h-5 absolute left-3.5 top-3 text-slate-500" />
             <input
               type="text"
-              placeholder="Buscar por nombre, código o sección..."
+              placeholder="Buscar por nombre o código..."
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
-              className="w-full bg-[#0f0f0f] border border-white/10 rounded-xl pl-11 pr-12 py-2.5 text-xs text-white focus:outline-none focus:border-[#E50914]"
+              className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-11 pr-4 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
             />
-            <span className="absolute right-3 top-3 text-[10px] font-mono text-slate-500 bg-zinc-900 px-1.5 py-0.5 rounded border border-white/5">⌘ K</span>
           </div>
-          <p className="text-xs text-slate-400 font-mono">Mostrando {filtrados.length} productos</p>
+          <p className="text-sm text-slate-500">{filtrados.length} productos</p>
         </div>
-        <nav className="flex gap-2 overflow-x-auto pb-1" aria-label="Secciones de productos">
-          <button
-            type="button"
-            onClick={() => setCategoriaActiva('')}
-            aria-pressed={!categoriaActiva}
-            className={`shrink-0 rounded-lg border px-3 py-2 text-xs font-bold transition-colors ${
-              !categoriaActiva
-                ? 'border-[#E50914] bg-red-950/50 text-white'
-                : 'border-white/10 bg-[#0f0f0f] text-slate-400 hover:text-white'
-            }`}
-          >
-            Todas ({productos.length})
-          </button>
-          {categorias.map((nombreCategoria) => {
-            const cantidadCategoria = productos.filter(
-              (producto) => producto.categoria?.toLocaleLowerCase() === nombreCategoria.toLocaleLowerCase()
-            ).length;
-            const activa = categoriaActiva.toLocaleLowerCase() === nombreCategoria.toLocaleLowerCase();
-            return (
-              <button
-                key={nombreCategoria.toLocaleLowerCase()}
-                type="button"
-                onClick={() => setCategoriaActiva(activa ? '' : nombreCategoria)}
-                aria-pressed={activa}
-                className={`shrink-0 rounded-lg border px-3 py-2 text-xs font-bold transition-colors ${
-                  activa
-                    ? 'border-[#E50914] bg-red-950/50 text-white'
-                    : 'border-white/10 bg-[#0f0f0f] text-slate-400 hover:text-white'
-                }`}
-              >
-                {nombreCategoria} ({cantidadCategoria})
-              </button>
-            );
-          })}
-        </nav>
       </div>
 
       {/* Tabla de Productos */}
-      <div className="bg-[#0f0f0f] border border-white/10 rounded-2xl overflow-hidden">
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-black/60 border-b border-white/10 text-slate-400 uppercase tracking-wider font-bold">
+          <table className="w-full min-w-[780px] text-left text-sm">
+            <thead className="border-b border-slate-200 bg-slate-50 text-xs font-bold uppercase text-slate-500">
               <tr>
-                <th className="p-4">Producto</th>
-                <th className="p-4">Sección</th>
-                <th className="p-4">Código</th>
-                <th className="p-4">Precio Unitario</th>
-                <th className="p-4">Disponible</th>
-                <th className="p-4">Stock Mínimo</th>
-                <th className="p-4">Estado</th>
-                <th className="p-4 text-right">Acciones</th>
+                <th className="px-4 py-3">Producto</th>
+                <th className="px-4 py-3">Código</th>
+                <th className="px-4 py-3">Precio</th>
+                <th className="px-4 py-3">Disponible</th>
+                <th className="px-4 py-3">Stock mínimo</th>
+                <th className="px-4 py-3">Estado</th>
+                <th className="px-4 py-3 text-right">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-slate-100">
               {filtrados.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="p-8 text-center text-slate-500">
+                  <td colSpan={7} className="p-8 text-center text-slate-500">
                     No hay productos que coincidan con la búsqueda o el catálogo está vacío.
                   </td>
                 </tr>
@@ -255,36 +235,31 @@ export default function ProductosView() {
                 filtrados.map((p) => {
                   const reponer = Number(p.stock_actual) <= Number(p.stock_minimo);
                   return (
-                    <tr key={p.id} className="hover:bg-white/[0.02] transition-colors">
-                      <td className="p-4 font-bold flex items-center gap-3">
-                        <span className="w-8 h-8 rounded-lg bg-zinc-800 text-white font-black flex items-center justify-center text-sm border border-white/10">
+                    <tr key={p.id} className="transition-colors hover:bg-blue-50/50">
+                      <td className="flex items-center gap-3 px-4 py-3 font-semibold">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-md border border-blue-100 bg-blue-50 text-sm font-bold text-blue-800">
                           {p.nombre.charAt(0).toUpperCase()}
                         </span>
                         {p.nombre}
                       </td>
-                      <td className="p-4">
-                        <span className="rounded-md border border-white/10 bg-white/5 px-2 py-1 text-[10px] font-bold text-slate-300">
-                          {p.categoria || 'General'}
-                        </span>
-                      </td>
-                      <td className="p-4 font-mono text-slate-400">{p.codigo}</td>
-                      <td className="p-4 font-mono text-emerald-400 font-bold">
+                      <td className="px-4 py-3 font-mono text-xs text-slate-500">{p.codigo}</td>
+                      <td className="px-4 py-3 font-mono font-semibold text-slate-800">
                         ${Number(p.precio).toLocaleString('es-CO')} COP
                       </td>
-                      <td className="p-4 font-mono font-bold text-white">{p.stock_actual}</td>
-                      <td className="p-4 font-mono text-slate-500">{p.stock_minimo}</td>
-                      <td className="p-4">
-                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
-                          reponer ? 'bg-red-950/80 text-red-400 border border-red-500/30' : 'bg-emerald-950/80 text-emerald-400 border border-emerald-500/30'
+                      <td className="px-4 py-3 font-mono font-bold text-slate-900">{p.stock_actual}</td>
+                      <td className="px-4 py-3 font-mono text-slate-500">{p.stock_minimo} unidades</td>
+                      <td className="px-4 py-3">
+                        <span className={`rounded-md border px-2 py-1 text-[10px] font-bold uppercase ${
+                          reponer ? 'border-amber-200 bg-amber-50 text-amber-800' : 'border-blue-200 bg-blue-50 text-blue-800'
                         }`}>
                           {reponer ? 'Reponer' : 'Disponible'}
                         </span>
                       </td>
-                      <td className="p-4 text-right space-x-2">
-                        <button onClick={() => abrirModal(p)} className="p-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-slate-300">
+                      <td className="space-x-2 px-4 py-3 text-right">
+                        <button type="button" aria-label={`Editar ${p.nombre}`} onClick={() => abrirModal(p)} className="rounded-md p-2 text-blue-800 hover:bg-blue-50">
                           <PencilSquareIcon className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleEliminar(p)} className="p-1.5 bg-red-950/50 hover:bg-red-900/50 rounded-lg text-red-400 border border-red-500/20">
+                        <button type="button" aria-label={`Eliminar ${p.nombre}`} onClick={() => handleEliminar(p)} className="rounded-md p-2 text-red-700 hover:bg-red-50">
                           <TrashIcon className="w-4 h-4" />
                         </button>
                       </td>
@@ -301,24 +276,24 @@ export default function ProductosView() {
       {modalAbierto && (
         <div 
           onClick={() => setModalAbierto(false)} 
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm"
         >
           <div 
             onClick={(e) => e.stopPropagation()} 
-            className="bg-[#0f0f0f] border border-white/10 rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl relative"
+            className="relative w-full max-w-md space-y-5 rounded-xl border border-slate-200 bg-white p-6 text-slate-900 shadow-2xl"
           >
-            <div className="flex justify-between items-center border-b border-white/10 pb-4">
-              <h3 className="text-lg font-black italic text-white">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+              <h3 className="text-lg font-bold text-slate-900">
                 {editando ? 'Editar producto' : 'Nuevo producto'}
               </h3>
-              <button onClick={() => setModalAbierto(false)} className="text-slate-400 hover:text-white">
+              <button type="button" aria-label="Cerrar" onClick={() => setModalAbierto(false)} className="text-slate-400 hover:text-slate-900">
                 <XMarkIcon className="w-6 h-6" />
               </button>
             </div>
 
             {errorModal && (
-              <div className="bg-red-950/60 border border-red-500/40 p-3 rounded-xl text-red-400 text-xs font-bold">
-                ⚠️ {errorModal}
+              <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs font-semibold text-red-800">
+                {errorModal}
               </div>
             )}
 
@@ -330,7 +305,7 @@ export default function ProductosView() {
                   required
                   value={codigo}
                   onChange={(e) => setCodigo(e.target.value)}
-                  className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#E50914]"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                 />
               </div>
 
@@ -341,24 +316,8 @@ export default function ProductosView() {
                   required
                   value={nombre}
                   onChange={(e) => setNombre(e.target.value)}
-                  className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#E50914]"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                 />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Sección / Categoría</label>
-                <input
-                  type="text"
-                  required
-                  list="categorias-productos"
-                  value={categoria}
-                  onChange={(e) => setCategoria(e.target.value)}
-                  placeholder="Ej: Repuestos, limpieza, accesorios"
-                  className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#E50914]"
-                />
-                <datalist id="categorias-productos">
-                  {categorias.map((nombreCategoria) => <option key={nombreCategoria} value={nombreCategoria} />)}
-                </datalist>
               </div>
 
               <div>
@@ -370,7 +329,7 @@ export default function ProductosView() {
                   required
                   value={precio}
                   onChange={(e) => setPrecio(e.target.value)}
-                  className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#E50914]"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                 />
               </div>
 
@@ -383,7 +342,7 @@ export default function ProductosView() {
                     required
                     value={stockActual}
                     onChange={(e) => setStockActual(e.target.value)}
-                    className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#E50914]"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                   />
                 </div>
                 <div>
@@ -394,23 +353,23 @@ export default function ProductosView() {
                     required
                     value={stockMinimo}
                     onChange={(e) => setStockMinimo(e.target.value)}
-                    className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#E50914]"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                   />
                 </div>
               </div>
 
-              <div className="flex gap-3 pt-4 border-t border-white/10">
+              <div className="flex gap-3 border-t border-slate-200 pt-4">
                 <button
                   type="button"
                   onClick={() => setModalAbierto(false)}
-                  className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-slate-300 font-bold py-2.5 rounded-xl text-xs uppercase"
+                  className="flex-1 rounded-lg border border-slate-200 bg-white py-2.5 text-xs font-bold uppercase text-slate-600 hover:bg-slate-50"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={guardando}
-                  className="flex-1 bg-[#E50914] hover:bg-red-700 text-white font-black py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all disabled:opacity-50"
+                  className="flex-1 rounded-lg bg-[#1f5a8a] py-2.5 text-xs font-bold uppercase tracking-wide text-white transition-colors hover:bg-[#174a74] disabled:opacity-50"
                 >
                   {guardando ? 'Guardando...' : editando ? 'Guardar Cambios' : 'Registrar Producto'}
                 </button>

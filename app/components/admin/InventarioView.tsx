@@ -13,7 +13,6 @@ import {
 interface Producto {
   id: number;
   nombre: string;
-  categoria: string;
   stock_actual: number;
   stock_minimo: number;
 }
@@ -171,7 +170,7 @@ export default function InventarioView() {
   };
 
   const gruposMovimiento = movimientosFiltrados.reduce((grupos, movimiento) => {
-    const clave = movimiento.transaccion_id || `movimiento-${movimiento.id}`;
+    const clave = movimiento.transaccion_id || movimiento.codigo_seguimiento || `movimiento-${movimiento.id}`;
     const grupo = grupos.get(clave) || [];
     grupo.push(movimiento);
     grupos.set(clave, grupo);
@@ -179,7 +178,7 @@ export default function InventarioView() {
   }, new Map<string, Movimiento[]>());
 
   return (
-    <div className="min-h-screen bg-[#030303] text-white p-4 md:p-8 font-sans">
+    <div className="inventory-light min-h-screen bg-[#030303] p-4 font-sans text-white md:p-8">
       <div className="max-w-7xl mx-auto space-y-8">
         
         {/* Cabecera */}
@@ -240,7 +239,7 @@ export default function InventarioView() {
                   <option value="">-- Seleccionar Producto --</option>
                   {productos.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.categoria || 'General'} · {p.nombre} (Stock: {p.stock_actual})
+                      {p.nombre} (Stock: {p.stock_actual})
                     </option>
                   ))}
                 </select>
@@ -334,7 +333,10 @@ export default function InventarioView() {
           {/* Historial de Movimientos */}
           <div className="lg:col-span-2 bg-[#0f0f0f]/95 rounded-[2rem] border border-white/10 overflow-hidden shadow-2xl p-6 space-y-4">
             <div className="flex flex-col gap-3 border-b border-white/5 pb-4 sm:flex-row sm:items-center sm:justify-between">
-              <h2 className="text-xl font-bold text-white">Historial de Movimientos</h2>
+              <div>
+                <h2 className="text-xl font-bold text-white">Historial</h2>
+                <p className="mt-1 text-xs text-slate-400">Consulta cada operación y su código de seguimiento.</p>
+              </div>
               <div className="flex flex-col gap-2 sm:flex-row">
                 <label className="relative min-w-0 sm:w-64">
                   <MagnifyingGlassIcon className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
@@ -383,7 +385,7 @@ export default function InventarioView() {
                       <th className="p-3">Tipo / Motivo</th>
                       <th className="p-3">Unidades</th>
                       <th className="p-3">Total venta</th>
-                      <th className="p-3 text-right">Acciones</th>
+                      <th className="p-3 text-right">Detalle / acciones</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5 text-sm">
@@ -400,25 +402,10 @@ export default function InventarioView() {
                             <span className="block whitespace-nowrap font-mono text-xs text-slate-400">
                               {new Date(principal.fecha).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}
                             </span>
-                            <span className="font-mono text-[10px] text-emerald-300">{principal.codigo_seguimiento || '-'}</span>
                           </td>
-                          <td className="p-3 align-top">
-                            {grupo.length === 1 ? (
-                              <>
-                                <span className="block font-bold text-white">{principal.nombre_producto || `Prod #${principal.producto_id}`}</span>
-                                <span className="font-mono text-xs text-slate-400">{principal.codigo_producto || '-'}</span>
-                                {principal.motivo && <span className="mt-1 block max-w-56 text-xs text-slate-500">{principal.motivo}</span>}
-                              </>
-                            ) : (
-                              <details>
-                                <summary className="cursor-pointer font-bold text-white">{principal.nombre_producto} + {grupo.length - 1} productos</summary>
-                                <ul className="mt-2 space-y-1 text-xs text-slate-400">
-                                  {grupo.map((item) => (
-                                    <li key={item.id}>{item.nombre_producto} ({item.codigo_producto || '-'}) · {item.cantidad} uds.</li>
-                                  ))}
-                                </ul>
-                              </details>
-                            )}
+                          <td className="p-3 align-top font-mono text-[10px] text-emerald-300">{principal.codigo_seguimiento || '-'}</td>
+                          <td className="p-3 align-top font-semibold text-slate-800">
+                            {grupo.length} {grupo.length === 1 ? 'producto' : 'productos'}
                           </td>
                           <td className="p-3 align-top">
                             {esVenta ? (
@@ -440,7 +427,28 @@ export default function InventarioView() {
                             {esVenta ? `$${totalVenta.toLocaleString('es-CO')} COP` : '-'}
                           </td>
                           <td className="p-3 text-right align-top">
-                            {grupo.length === 1 && !esVenta && (
+                            <div className="flex justify-end gap-1">
+                              <details className="relative text-left">
+                                <summary
+                                  aria-label={`Ver detalle de ${esVenta ? 'venta' : 'movimiento'} ${principal.codigo_seguimiento || principal.id}`}
+                                  title="Ver productos"
+                                  className="inline-flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-md border border-white/10 text-slate-300 hover:bg-white/5"
+                                >
+                                  <MagnifyingGlassIcon className="h-4 w-4" />
+                                </summary>
+                                <div className="absolute right-0 z-10 mt-2 w-72 rounded-lg border border-white/10 bg-[#0f0f0f] p-3 text-left shadow-xl">
+                                  <p className="mb-2 text-xs font-bold text-white">Productos de la operación</p>
+                                  <ul className="space-y-2">
+                                    {grupo.map((item) => (
+                                      <li key={item.id} className="flex justify-between gap-3 text-xs">
+                                        <span className="text-slate-300">{item.nombre_producto || `Prod #${item.producto_id}`} <span className="text-slate-500">{item.codigo_producto || ''}</span></span>
+                                        <strong className="whitespace-nowrap text-white">{item.cantidad} uds.</strong>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              </details>
+                              {grupo.length === 1 && !esVenta && (
                               <button
                                 type="button"
                                 title="Editar movimiento"
@@ -459,7 +467,8 @@ export default function InventarioView() {
                               >
                                 <PencilSquareIcon className="h-4 w-4" />
                               </button>
-                            )}
+                              )}
+                            </div>
                           </td>
                         </tr>
                       );
