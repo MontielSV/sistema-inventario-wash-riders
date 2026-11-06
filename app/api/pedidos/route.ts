@@ -1,5 +1,6 @@
 import { Pool } from 'pg';
 import { NextResponse } from 'next/server';
+import { isAuthenticated } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -7,7 +8,11 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
-export async function GET() {
+export async function GET(request: Request) {
+  if (!isAuthenticated(request)) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  }
+
   let client;
   try {
     client = await pool.connect();
@@ -35,6 +40,10 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if (!isAuthenticated(request)) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  }
+
   let client;
   try {
     const body = await request.json();
@@ -74,6 +83,10 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
+  if (!isAuthenticated(request)) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  }
+
   let client;
   try {
     const body = await request.json();
@@ -152,6 +165,10 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  if (!isAuthenticated(request)) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  }
+
   let client;
   try {
     client = await pool.connect();

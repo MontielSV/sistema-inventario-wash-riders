@@ -1,36 +1,32 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Wash Riders - Sistema de Inventarios
 
-## Getting Started
+Aplicación Next.js para administrar productos, existencias, movimientos y reportes mensuales. PostgreSQL se conecta mediante `DATABASE_URL` (Neon).
 
-First, run the development server:
+## Configuración
+
+Define estas variables en el entorno local y en Vercel:
+
+- `DATABASE_URL`: cadena de conexión PostgreSQL de Neon.
+- `AUTH_SECRET`: secreto aleatorio para firmar las sesiones. Si no se define, se usa `DATABASE_URL` como clave de respaldo.
+- `ADMIN_BOOTSTRAP_PASSWORD`: opcional. Si no existe el usuario `admin`, esta contraseña permite crear la cuenta inicial. En desarrollo se usa `admin123` por defecto; en producción debe configurarse de forma explícita y eliminarse después del primer aprovisionamiento.
+
+Las tablas `productos` y `movimientos` se crean automáticamente al consultar el inventario. La tabla `usuarios` se crea en el primer intento de inicio de sesión. Las contraseñas nuevas usan `scrypt`; las contraseñas existentes en texto plano se convierten al formato hash después de un inicio de sesión válido.
+
+## Ejecución
 
 ```bash
+npm ci
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+En desarrollo, las credenciales de prueba son `admin` / `admin123`. El panel puede abrirse en `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Antes de desplegar, configura `DATABASE_URL` y `AUTH_SECRET` en Vercel. Para aprovisionar el administrador inicial, establece temporalmente `ADMIN_BOOTSTRAP_PASSWORD` con una contraseña segura y accede como `admin`; luego elimina esa variable. No mantengas `admin123` como contraseña de producción.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## API
 
-## Learn More
+- `/api/login`: consulta de sesión (`GET`), inicio (`POST`) y cierre (`DELETE`).
+- `/api/productos`: consulta (`GET`), creación (`POST`) y edición (`PUT`) del catálogo.
+- `/api/inventario`: historial (`GET`), registro (`POST`) y edición (`PUT`) de movimientos.
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Las rutas de productos, movimientos y dashboard requieren una sesión válida. Los movimientos actualizan stock e historial dentro de una transacción PostgreSQL.

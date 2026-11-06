@@ -1,11 +1,16 @@
 import { NextResponse } from 'next/server';
 import { Pool } from 'pg';
+import { isAuthenticated } from '@/lib/auth';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
-export async function GET() {
+export async function GET(request: Request) {
+  if (!isAuthenticated(request)) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  }
+
   try {
     const client = await pool.connect();
     const result = await client.query('SELECT * FROM configuracion_negocio WHERE id = 1');
@@ -15,15 +20,15 @@ export async function GET() {
       return NextResponse.json({ 
         tienda_abierta: true, 
         whatsapp_numero: '573000000000', 
-        nombre_negocio: 'Mr Kings Arepa',
-        slogan: 'Sabor de Sofi',
+        nombre_negocio: 'Wash Riders',
+        slogan: 'Sistema de Inventarios',
         hora_apertura: '14:00',
         hora_cierre: '23:30',
         costo_domicilio: 0,
-        mensaje_whatsapp_custom: '¡Hola! Quiero hacer el siguiente pedido:',
-        aviso_banner: 'Abierto',
+        mensaje_whatsapp_custom: 'Wash Riders',
+        aviso_banner: 'Operativo',
         formato_impresora: '58mm',
-        pie_pagina_ticket: '¡Gracias por tu compra!',
+        pie_pagina_ticket: 'Control de inventario Wash Riders',
         descuento_web_activo: false,
         descuento_web_porcentaje: 0
       });
@@ -37,6 +42,10 @@ export async function GET() {
 }
 
 export async function PUT(request: Request) {
+  if (!isAuthenticated(request)) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  }
+
   try {
     const body = await request.json();
     const { 

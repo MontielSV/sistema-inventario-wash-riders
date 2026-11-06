@@ -225,8 +225,8 @@ export default function VentasView() {
             </style>
           </head>
           <body>
-            <h2>MR KINGS AREPA</h2>
-            <div class="centro">Sabor de Sofi</div>
+            <h2>WASH RIDERS</h2>
+            <div class="centro">CONTROL DE INVENTARIO</div>
             <div class="line"></div>
             <p style="margin: 3px 0;"><b>ORDEN:</b> #${pedido.id}</p>
             <p style="margin: 3px 0;"><b>FECHA:</b> ${formatearFechaYHora(pedido)}</p>

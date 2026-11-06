@@ -20,7 +20,7 @@ interface Movimiento {
   tipo: 'ENTRADA' | 'SALIDA';
   cantidad: number;
   fecha: string;
-  nota: string;
+  motivo: string;
 }
 
 export default function InventarioView() {
@@ -32,7 +32,8 @@ export default function InventarioView() {
   const [productoId, setProductoId] = useState<number | ''>('');
   const [tipo, setTipo] = useState<'ENTRADA' | 'SALIDA'>('ENTRADA');
   const [cantidad, setCantidad] = useState<number>(1);
-  const [nota, setNota] = useState('');
+  const [motivo, setMotivo] = useState('');
+  const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10));
   const [procesando, setProcesando] = useState(false);
 
   const cargarDatos = async () => {
@@ -78,7 +79,8 @@ export default function InventarioView() {
           producto_id: Number(productoId),
           tipo,
           cantidad: Number(cantidad),
-          nota
+          motivo,
+          fecha
         })
       });
 
@@ -89,7 +91,8 @@ export default function InventarioView() {
 
       setProductoId('');
       setCantidad(1);
-      setNota('');
+      setMotivo('');
+      setFecha(new Date().toISOString().slice(0, 10));
       cargarDatos();
     } catch (err: any) {
       alert(err.message || 'Error en la operación');
@@ -97,6 +100,13 @@ export default function InventarioView() {
       setProcesando(false);
     }
   };
+
+  const totalEntradas = movimientos
+    .filter((movimiento) => movimiento.tipo === 'ENTRADA')
+    .reduce((total, movimiento) => total + Number(movimiento.cantidad), 0);
+  const totalSalidas = movimientos
+    .filter((movimiento) => movimiento.tipo === 'SALIDA')
+    .reduce((total, movimiento) => total + Number(movimiento.cantidad), 0);
 
   return (
     <div className="min-h-screen bg-[#030303] text-white p-4 md:p-8 font-sans">
@@ -111,6 +121,21 @@ export default function InventarioView() {
             Registro manual de entradas (compras/abasto) y salidas (bajas/uso)
           </p>
         </header>
+
+        <section className="grid grid-cols-1 sm:grid-cols-3 gap-4" aria-label="Resumen de movimientos">
+          <div className="bg-[#0f0f0f] border border-white/10 rounded-xl p-5">
+            <p className="text-xs font-bold uppercase text-slate-400">Movimientos registrados</p>
+            <p className="mt-2 text-2xl font-black">{movimientos.length}</p>
+          </div>
+          <div className="bg-[#0f0f0f] border border-emerald-500/20 rounded-xl p-5">
+            <p className="text-xs font-bold uppercase text-slate-400">Unidades recibidas</p>
+            <p className="mt-2 text-2xl font-black text-emerald-400">{totalEntradas}</p>
+          </div>
+          <div className="bg-[#0f0f0f] border border-red-500/20 rounded-xl p-5">
+            <p className="text-xs font-bold uppercase text-slate-400">Unidades descontadas</p>
+            <p className="mt-2 text-2xl font-black text-red-400">{totalSalidas}</p>
+          </div>
+        </section>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
@@ -177,12 +202,23 @@ export default function InventarioView() {
               </div>
 
               <div>
+                <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Fecha</label>
+                <input
+                  type="date"
+                  required
+                  value={fecha}
+                  onChange={(e) => setFecha(e.target.value)}
+                  className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-[#E50914]"
+                />
+              </div>
+
+              <div>
                 <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Nota / Observación</label>
                 <input
                   type="text"
-                  placeholder="Ej: Compra a proveedor / Ajuste"
-                  value={nota}
-                  onChange={(e) => setNota(e.target.value)}
+                  placeholder="Ej: Compra a proveedor / Baja"
+                  value={motivo}
+                  onChange={(e) => setMotivo(e.target.value)}
                   className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-[#E50914]"
                 />
               </div>
@@ -240,7 +276,7 @@ export default function InventarioView() {
                           )}
                         </td>
                         <td className="p-3 font-mono font-bold text-white">{m.cantidad}</td>
-                        <td className="p-3 pr-4 text-xs text-slate-400">{m.nota || '-'}</td>
+                        <td className="p-3 pr-4 text-xs text-slate-400">{m.motivo || '-'}</td>
                       </tr>
                     ))}
                   </tbody>

@@ -2,18 +2,18 @@ import { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Mr Kings Arepa',
-    short_name: 'Mr Kings',
-    description: 'Sabor de Sofi - Los mejores pedidos a domicilio',
+    name: 'Wash Riders - Sistema de Inventarios',
+    short_name: 'Wash Riders',
+    description: 'Gestión de productos, existencias y movimientos de inventario.',
     start_url: '/',
     display: 'standalone',
     background_color: '#000000',
     theme_color: '#000000',
     icons: [
       {
-        src: '/logo.png',
+        src: '/wash-riders.svg',
         sizes: 'any',
-        type: 'image/png',
+        type: 'image/svg+xml',
       },
     ],
   }

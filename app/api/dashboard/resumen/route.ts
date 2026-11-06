@@ -1,5 +1,6 @@
 import { Pool } from 'pg';
 import { NextResponse } from 'next/server';
+import { isAuthenticated } from '@/lib/auth';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -7,7 +8,11 @@ const pool = new Pool({
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: Request) {
+  if (!isAuthenticated(request)) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  }
+
   let client;
   try {
     client = await pool.connect();
@@ -143,6 +148,10 @@ export async function GET() {
 
 // 6. FUNCIÓN POST PARA GUARDAR LA META EN POSTGRESQL
 export async function POST(req: Request) {
+  if (!isAuthenticated(req)) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  }
+
   let client;
   try {
     const body = await req.json();

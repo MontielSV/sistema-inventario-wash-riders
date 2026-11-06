@@ -1,14 +1,15 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Sidebar from './components/Sidebar';
 import DashboardView from './components/admin/DashboardView';
 import ProductosView from './components/admin/ProductosView';
 import InventarioView from './components/admin/InventarioView';
-import ReportePDFView from './components/admin/ReportePDFView';
+import ReportePDFView from './components/ReportePDFView';
 import { LockClosedIcon, UserIcon } from '@heroicons/react/24/outline';
 
 export default function Home() {
   const [autenticado, setAutenticado] = useState(false);
+  const [cargandoSesion, setCargandoSesion] = useState(true);
   const [vistaActiva, setVistaActiva] = useState('dashboard');
   
   // Estados para el login
@@ -16,6 +17,14 @@ export default function Home() {
   const [password, setPassword] = useState('');
   const [errorLogin, setErrorLogin] = useState('');
   const [cargandoLogin, setCargandoLogin] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/login', { cache: 'no-store' })
+      .then((res) => res.json())
+      .then((data) => setAutenticado(Boolean(data.autenticado)))
+      .catch(() => setAutenticado(false))
+      .finally(() => setCargandoSesion(false));
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,12 +45,26 @@ export default function Home() {
       } else {
         setErrorLogin(data.error || 'Credenciales inválidas');
       }
-    } catch (err) {
+    } catch {
       setErrorLogin('Error conectando con el servidor');
     } finally {
       setCargandoLogin(false);
     }
   };
+
+  const handleLogout = async () => {
+    await fetch('/api/login', { method: 'DELETE' });
+    setAutenticado(false);
+    setVistaActiva('dashboard');
+  };
+
+  if (cargandoSesion) {
+    return (
+      <div className="min-h-screen bg-[#030303] text-white flex items-center justify-center">
+        <p className="text-sm font-bold text-slate-400">Verificando sesión...</p>
+      </div>
+    );
+  }
 
   // 1. Si no está autenticado, muestra la Pantalla de Login
   if (!autenticado) {
@@ -113,13 +136,13 @@ export default function Home() {
 
   // 2. Si está autenticado, muestra el Panel con Sidebar Lateral
   return (
-    <div className="flex min-h-screen bg-[#030303]">
+    <div className="flex min-h-screen flex-col bg-[#030303] lg:flex-row">
       <Sidebar 
         vistaActiva={vistaActiva} 
         setVistaActiva={setVistaActiva} 
-        onLogout={() => setAutenticado(false)} 
+        onLogout={handleLogout} 
       />
-      <main className="flex-1 overflow-y-auto">
+      <main className="min-w-0 flex-1 overflow-y-auto">
         {vistaActiva === 'dashboard' && <DashboardView />}
         {vistaActiva === 'productos' && <ProductosView />}
         {vistaActiva === 'historial' && <InventarioView />}

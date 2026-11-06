@@ -17,5 +17,5 @@ const firebaseConfig = {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
 // Exportamos las herramientas que vamos a usar en las demás páginas
-export const db = getFirestore(app); // Para el catálogo de arepas en tiempo real
+export const db = getFirestore(app); // Conexión heredada; el inventario se gestiona en PostgreSQL.
 export const auth = getAuth(app);    // Para el login del administrador

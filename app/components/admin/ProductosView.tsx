@@ -273,6 +273,7 @@ export default function ProductosView() {
                   <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Categoría</label>
                   <input
                     type="text"
+                    required
                     value={categoria}
                     onChange={(e) => setCategoria(e.target.value)}
                     className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2 text-white focus:border-[#E50914]"
@@ -286,6 +287,7 @@ export default function ProductosView() {
                       type="number"
                       required
                       min="0"
+                      step="0.01"
                       value={precio}
                       onChange={(e) => setPrecio(Number(e.target.value))}
                       className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-white focus:border-[#E50914]"

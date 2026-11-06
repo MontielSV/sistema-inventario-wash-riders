@@ -1,7 +1,14 @@
 import { NextResponse } from 'next/server';
-import { pool } from '../../../../lib/db';
+import pool from '@/lib/db';
+import { isAuthenticated } from '@/lib/auth';
+
+export const runtime = 'nodejs';
 
 export async function PATCH(request: Request) {
+  if (!isAuthenticated(request)) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  }
+
   try {
     // 1. Verificamos si podemos leer el cuerpo del mensaje
     const body = await request.json();

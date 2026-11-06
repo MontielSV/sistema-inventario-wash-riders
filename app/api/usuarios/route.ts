@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
+import { isAuthenticated } from '@/lib/auth';
 
 export async function POST(request: Request) {
+  if (!isAuthenticated(request)) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  }
+
   try {
     const { usuario, password } = await request.json();
 

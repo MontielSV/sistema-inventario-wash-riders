@@ -1,11 +1,16 @@
 import { NextResponse } from 'next/server';
 import { Pool } from 'pg';
+import { isAuthenticated } from '@/lib/auth';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
 export async function GET(request: Request) {
+  if (!isAuthenticated(request)) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  }
+
   let client;
   try {
     const { searchParams } = new URL(request.url);
@@ -30,6 +35,10 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  if (!isAuthenticated(request)) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  }
+
   let client;
   try {
     const body = await request.json();

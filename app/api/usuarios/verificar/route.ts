@@ -1,11 +1,16 @@
 import { NextResponse } from 'next/server';
 import { Pool } from 'pg';
+import { isAuthenticated } from '@/lib/auth';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
 export async function POST(request: Request) {
+  if (!isAuthenticated(request)) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  }
+
   try {
     const { email } = await request.json();
     if (!email) {
@@ -36,6 +41,10 @@ export async function POST(request: Request) {
 }
 // DELETE: Eliminar un empleado de la BD con protección Root
 export async function DELETE(request: Request) {
+  if (!isAuthenticated(request)) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
