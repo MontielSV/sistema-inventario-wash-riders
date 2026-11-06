@@ -1,80 +1,135 @@
 import { NextResponse } from 'next/server';
+import { randomUUID } from 'node:crypto';
+import type { PoolClient } from 'pg';
 import pool from '@/lib/db';
+import { isAuthenticated } from '@/lib/auth';
+import { ensureInventoryTables } from '@/lib/inventory-db';
+
+export const runtime = 'nodejs';
+
+interface ItemVenta {
+  producto_id: number;
+  cantidad: number;
+}
+
+function createTrackingCode() {
+  const date = new Date().toISOString().slice(0, 10).replaceAll('-', '');
+  return `WR-${date}-${randomUUID().slice(0, 8).toUpperCase()}`;
+}
 
 export async function POST(request: Request) {
-  const client = await pool.connect();
+  if (!isAuthenticated(request)) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  }
+
+  let client: PoolClient | undefined;
+  let transactionStarted = false;
   try {
-    const { items, motivo, tipo, total } = await request.json();
+    const body = await request.json();
+    const items = Array.isArray(body.items) ? body.items as ItemVenta[] : [];
+    const tipo = body.tipo;
+    const detalle = typeof body.motivo === 'string' ? body.motivo.trim() : '';
 
-    if (!items || items.length === 0) {
-      return NextResponse.json({ error: 'Agrega al menos un producto a la venta.' }, { status: 400 });
+    if (!items.length || items.length > 100) {
+      return NextResponse.json({ error: 'Agrega entre 1 y 100 productos.' }, { status: 400 });
     }
 
-    if (motivo.startsWith('Otro:') && motivo.length > 145) {
-      return NextResponse.json({ error: 'El detalle del motivo "Otro" debe tener máximo 140 caracteres.' }, { status: 400 });
+    if (!['VENTA', 'USO_INTERNO', 'OTRO'].includes(tipo)) {
+      return NextResponse.json({ error: 'Selecciona un motivo válido para la salida.' }, { status: 400 });
     }
 
+    if (tipo === 'OTRO' && (!detalle || detalle.length > 140)) {
+      return NextResponse.json({ error: 'Escribe un detalle de hasta 140 caracteres para esta salida.' }, { status: 400 });
+    }
+
+    const cantidadesPorProducto = new Map<number, number>();
+    for (const item of items) {
+      const productoId = Number(item?.producto_id);
+      const cantidad = Number(item?.cantidad);
+      if (!Number.isInteger(productoId) || productoId < 1 || !Number.isInteger(cantidad) || cantidad < 1) {
+        return NextResponse.json({ error: 'Cada producto debe tener una cantidad entera mayor a cero.' }, { status: 400 });
+      }
+      cantidadesPorProducto.set(productoId, (cantidadesPorProducto.get(productoId) || 0) + cantidad);
+    }
+
+    await ensureInventoryTables();
+    client = await pool.connect();
     await client.query('BEGIN');
+    transactionStarted = true;
 
-    // 1. Generar código de seguimiento único solo si es VENTA
-    const esVenta = tipo === 'VENTA' || motivo === 'Venta';
-    const codigoSeguimiento = esVenta 
-      ? `WR-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`
-      : '-';
+    const productoIds = [...cantidadesPorProducto.keys()].sort((a, b) => a - b);
+    const productos = await client.query(
+      'SELECT id, codigo, nombre, stock_actual, precio FROM productos WHERE id = ANY($1::int[]) ORDER BY id FOR UPDATE',
+      [productoIds]
+    );
 
-    // 2. Validar stock de TODOS los productos antes de escribir
-    for (const item of items) {
-      const prodRes = await client.query('SELECT id, nombre, stock_actual, precio FROM productos WHERE id = $1', [item.producto_id]);
-      if (prodRes.rows.length === 0) {
-        throw new Error(`El producto seleccionado ya no existe en el catálogo.`);
-      }
-      const prod = prodRes.rows[0];
-      if (prod.stock_actual < item.cantidad) {
-        throw new Error(`Stock insuficiente para "${prod.nombre}". Disponible: ${prod.stock_actual}, solicitado: ${item.cantidad}.`);
+    if (productos.rowCount !== productoIds.length) {
+      throw Object.assign(new Error('Uno o más productos no existen en el catálogo.'), { status: 404 });
+    }
+
+    const productosPorId = new Map(productos.rows.map((producto) => [Number(producto.id), producto]));
+    for (const [productoId, cantidad] of cantidadesPorProducto) {
+      const producto = productosPorId.get(productoId)!;
+      if (Number(producto.stock_actual) < cantidad) {
+        throw Object.assign(
+          new Error(`Stock insuficiente para "${producto.nombre}". Disponible: ${producto.stock_actual}, solicitado: ${cantidad}.`),
+          { status: 409 }
+        );
       }
     }
 
-    // 3. Ejecutar descuentos y guardar movimientos históricos
-    for (const item of items) {
-      const prodRes = await client.query('SELECT codigo, nombre, precio FROM productos WHERE id = $1', [item.producto_id]);
-      const prod = prodRes.rows[0];
-      const precioAplicado = item.precio_unitario || prod.precio;
-      const subtotalCalculado = item.cantidad * precioAplicado;
+    const transaccionId = randomUUID();
+    const codigoSeguimiento = tipo === 'VENTA' ? createTrackingCode() : null;
+    const motivo = tipo === 'VENTA' ? 'Venta' : tipo === 'USO_INTERNO' ? 'Uso interno' : detalle;
+    const movimientos = [];
+    let total = 0;
 
-      // Descontar existencias
+    for (const [productoId, cantidad] of cantidadesPorProducto) {
+      const producto = productosPorId.get(productoId)!;
+      const precio = Number(producto.precio);
+      const subtotal = precio * cantidad;
       await client.query(
         'UPDATE productos SET stock_actual = stock_actual - $1 WHERE id = $2',
-        [item.cantidad, item.producto_id]
+        [cantidad, productoId]
       );
-
-      // Registrar movimiento
-      await client.query(
-        `INSERT INTO movimientos 
-          (producto_id, tipo, cantidad, motivo, codigo_seguimiento, precio_unitario, subtotal, fecha)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
-        [
-          item.producto_id,
-          esVenta ? 'VENTA' : 'SALIDA',
-          item.cantidad,
-          motivo,
-          codigoSeguimiento,
-          precioAplicado,
-          subtotalCalculado,
-        ]
+      const result = await client.query(
+        `INSERT INTO movimientos
+          (producto_id, tipo, cantidad, motivo_tipo, motivo, precio_unitario, fecha, transaccion_id, codigo_seguimiento)
+         VALUES ($1, 'SALIDA', $2, $3, $4, $5, CURRENT_TIMESTAMP, $6, $7)
+         RETURNING id, producto_id, tipo, cantidad, motivo_tipo, motivo, precio_unitario, fecha,
+           transaccion_id, codigo_seguimiento`,
+        [productoId, cantidad, tipo, motivo, precio, transaccionId, codigoSeguimiento]
       );
+      movimientos.push({
+        ...result.rows[0],
+        codigo_producto: producto.codigo,
+        nombre_producto: producto.nombre,
+        subtotal,
+      });
+      total += subtotal;
     }
 
     await client.query('COMMIT');
-    return NextResponse.json({ 
-      exito: true, 
+    transactionStarted = false;
+    return NextResponse.json({
+      exito: true,
+      transaccion_id: transaccionId,
       codigo_seguimiento: codigoSeguimiento,
-      mensaje: esVenta ? 'Venta registrada y disponibilidad actualizada.' : 'Salida registrada y disponibilidad actualizada.'
-    });
-
-  } catch (error: any) {
-    await client.query('ROLLBACK');
-    return NextResponse.json({ error: error.message }, { status: 400 });
+      tipo,
+      motivo,
+      total,
+      items: movimientos,
+      mensaje: tipo === 'VENTA' ? 'Venta registrada y stock actualizado.' : 'Salida registrada y stock actualizado.',
+    }, { status: 201 });
+  } catch (error) {
+    if (client && transactionStarted) await client.query('ROLLBACK');
+    console.error('Error al registrar venta o salida por lote:', error);
+    const status = typeof error === 'object' && error !== null && 'status' in error
+      ? Number(error.status)
+      : 500;
+    const message = error instanceof Error ? error.message : 'No se pudo registrar la operación.';
+    return NextResponse.json({ error: message }, { status });
   } finally {
-    client.release();
+    client?.release();
   }
 }

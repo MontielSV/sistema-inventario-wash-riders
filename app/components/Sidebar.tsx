@@ -3,6 +3,7 @@ import {
   HomeIcon, 
   CubeIcon, 
   ShoppingBagIcon, 
+  ShoppingCartIcon,
   DocumentArrowDownIcon, 
   ArrowRightOnRectangleIcon 
 } from '@heroicons/react/24/outline';
@@ -17,6 +18,7 @@ export default function Sidebar({ vistaActiva, setVistaActiva, onLogout }: Sideb
   const menuItems = [
     { id: 'dashboard', nombre: 'Inicio', icono: HomeIcon },
     { id: 'productos', nombre: 'Productos', icono: CubeIcon },
+    { id: 'ventas', nombre: 'Registrar venta', icono: ShoppingCartIcon },
     { id: 'historial', nombre: 'Historial Compras/Ventas', icono: ShoppingBagIcon },
     { id: 'pdf', nombre: 'PDF Mensual / Reportes', icono: DocumentArrowDownIcon },
   ];

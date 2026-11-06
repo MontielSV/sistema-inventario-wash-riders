@@ -27,4 +27,6 @@ export async function ensureInventoryTables() {
   `);
   await pool.query("ALTER TABLE movimientos ADD COLUMN IF NOT EXISTS motivo_tipo TEXT NOT NULL DEFAULT 'OTRO'");
   await pool.query('ALTER TABLE movimientos ADD COLUMN IF NOT EXISTS precio_unitario NUMERIC(12, 2) NOT NULL DEFAULT 0');
+  await pool.query('ALTER TABLE movimientos ADD COLUMN IF NOT EXISTS transaccion_id TEXT');
+  await pool.query('ALTER TABLE movimientos ADD COLUMN IF NOT EXISTS codigo_seguimiento TEXT');
 }

@@ -2,6 +2,8 @@
 import { useEffect, useState } from 'react';
 import {
   ArrowPathIcon,
+  BanknotesIcon,
+  ChartBarIcon,
   CubeIcon,
   ExclamationTriangleIcon,
   Squares2X2Icon,
@@ -16,8 +18,27 @@ interface Producto {
   stock_minimo: number;
 }
 
+interface Movimiento {
+  id: number;
+  nombre_producto?: string;
+  codigo_producto?: string;
+  tipo: 'ENTRADA' | 'SALIDA';
+  cantidad: number;
+  fecha: string;
+  motivo_tipo: string;
+  precio_unitario: number;
+}
+
+const fechaLocalClave = (fecha: Date) => {
+  const año = fecha.getFullYear();
+  const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+  const dia = String(fecha.getDate()).padStart(2, '0');
+  return `${año}-${mes}-${dia}`;
+};
+
 export default function DashboardView() {
   const [productos, setProductos] = useState<Producto[]>([]);
+  const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
 
@@ -25,10 +46,18 @@ export default function DashboardView() {
     setCargando(true);
     setError('');
     try {
-      const response = await fetch('/api/productos', { cache: 'no-store' });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'No se pudo cargar el inventario');
-      setProductos(Array.isArray(data) ? data : []);
+      const [respuestaProductos, respuestaMovimientos] = await Promise.all([
+        fetch('/api/productos', { cache: 'no-store' }),
+        fetch('/api/inventario', { cache: 'no-store' }),
+      ]);
+      const [datosProductos, datosMovimientos] = await Promise.all([
+        respuestaProductos.json(),
+        respuestaMovimientos.json(),
+      ]);
+      if (!respuestaProductos.ok) throw new Error(datosProductos.error || 'No se pudo cargar el inventario');
+      if (!respuestaMovimientos.ok) throw new Error(datosMovimientos.error || 'No se pudo cargar el historial de ventas');
+      setProductos(Array.isArray(datosProductos) ? datosProductos : []);
+      setMovimientos(Array.isArray(datosMovimientos) ? datosMovimientos : []);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Error al cargar el inventario');
     } finally {
@@ -44,6 +73,52 @@ export default function DashboardView() {
   const stockBajo = productos.filter(
     (producto) => Number(producto.stock_actual) <= Number(producto.stock_minimo)
   );
+  const fechaHoy = fechaLocalClave(new Date());
+  const ventasHoy = movimientos.filter(
+    (movimiento) => movimiento.tipo === 'SALIDA' &&
+      movimiento.motivo_tipo === 'VENTA' &&
+      fechaLocalClave(new Date(movimiento.fecha)) === fechaHoy
+  );
+  const ingresosHoy = ventasHoy.reduce(
+    (total, movimiento) => total + Number(movimiento.cantidad) * Number(movimiento.precio_unitario),
+    0
+  );
+  const productosVendidosHoy = ventasHoy.reduce((total, movimiento) => total + Number(movimiento.cantidad), 0);
+  const conteoPorProducto = new Map<string, { nombre: string; codigo: string; cantidad: number }>();
+  ventasHoy.forEach((movimiento) => {
+    const codigo = movimiento.codigo_producto || String(movimiento.id);
+    const actual = conteoPorProducto.get(codigo);
+    if (actual) {
+      actual.cantidad += Number(movimiento.cantidad);
+    } else {
+      conteoPorProducto.set(codigo, {
+        nombre: movimiento.nombre_producto || `Producto ${codigo}`,
+        codigo,
+        cantidad: Number(movimiento.cantidad),
+      });
+    }
+  });
+  const productosMasVendidos = Array.from(conteoPorProducto.values())
+    .sort((primero, segundo) => segundo.cantidad - primero.cantidad)
+    .slice(0, 5);
+  const ventasUltimosSieteDias = Array.from({ length: 7 }, (_, indice) => {
+    const dia = new Date();
+    dia.setHours(0, 0, 0, 0);
+    dia.setDate(dia.getDate() - (6 - indice));
+    const clave = fechaLocalClave(dia);
+    const ventas = movimientos.filter((movimiento) =>
+      movimiento.tipo === 'SALIDA' &&
+      movimiento.motivo_tipo === 'VENTA' &&
+      fechaLocalClave(new Date(movimiento.fecha)) === clave
+    );
+    return {
+      clave,
+      etiqueta: new Intl.DateTimeFormat('es-CO', { weekday: 'short' }).format(dia).replace('.', ''),
+      total: ventas.reduce((suma, movimiento) => suma + Number(movimiento.cantidad) * Number(movimiento.precio_unitario), 0),
+    };
+  });
+  const mayorVentaDiaria = Math.max(...ventasUltimosSieteDias.map((dia) => dia.total), 0);
+  const formatoMoneda = (valor: number) => `$${valor.toLocaleString('es-CO')} COP`;
 
   return (
     <section className="min-h-screen bg-[#030303] p-4 text-white md:p-8">
@@ -71,7 +146,7 @@ export default function DashboardView() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
           <article className="rounded-xl border border-white/10 bg-[#0f0f0f] p-5">
             <div className="flex items-center justify-between text-slate-400">
               <span className="text-xs font-bold uppercase">Productos registrados</span>
@@ -93,7 +168,69 @@ export default function DashboardView() {
             </div>
             <p className="mt-3 text-3xl font-black text-amber-400">{cargando ? '...' : stockBajo.length}</p>
           </article>
+          <article className="rounded-xl border border-sky-500/20 bg-[#0f0f0f] p-5">
+            <div className="flex items-center justify-between text-slate-400">
+              <span className="text-xs font-bold uppercase">Unidades vendidas hoy</span>
+              <ChartBarIcon className="h-5 w-5 text-sky-400" />
+            </div>
+            <p className="mt-3 text-3xl font-black text-sky-300">{cargando ? '...' : productosVendidosHoy}</p>
+          </article>
+          <article className="rounded-xl border border-emerald-500/20 bg-[#0f0f0f] p-5">
+            <div className="flex items-center justify-between text-slate-400">
+              <span className="text-xs font-bold uppercase">Ingresos de hoy</span>
+              <BanknotesIcon className="h-5 w-5 text-emerald-400" />
+            </div>
+            <p className="mt-3 text-2xl font-black text-emerald-300">{cargando ? '...' : formatoMoneda(ingresosHoy)}</p>
+          </article>
         </div>
+
+        <section className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(260px,0.6fr)]">
+          <article className="rounded-xl border border-white/10 bg-[#0f0f0f] p-5">
+            <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-4">
+              <div>
+                <h2 className="text-lg font-bold">Ventas últimos 7 días</h2>
+                <p className="mt-1 text-xs text-slate-400">Ingresos diarios registrados</p>
+              </div>
+              <ChartBarIcon className="h-5 w-5 text-sky-400" />
+            </div>
+            <div className="mt-5 grid h-44 grid-cols-7 items-end gap-2" role="img" aria-label="Gráfico de ingresos diarios de los últimos siete días">
+              {ventasUltimosSieteDias.map((dia) => (
+                <div key={dia.clave} className="flex h-full min-w-0 flex-col items-center justify-end gap-2" title={`${dia.clave}: ${formatoMoneda(dia.total)}`}>
+                  <div className="flex h-full w-full items-end rounded-t-sm bg-white/[0.03]">
+                    <div
+                      className="w-full rounded-t-sm bg-sky-500 transition-[height]"
+                      style={{ height: dia.total > 0 && mayorVentaDiaria > 0 ? `${Math.max(5, (dia.total / mayorVentaDiaria) * 100)}%` : '0%' }}
+                    />
+                  </div>
+                  <span className="text-[10px] capitalize text-slate-500">{dia.etiqueta}</span>
+                </div>
+              ))}
+            </div>
+          </article>
+
+          <article className="rounded-xl border border-white/10 bg-[#0f0f0f] p-5">
+            <div className="border-b border-white/10 pb-4">
+              <h2 className="text-lg font-bold">Más vendidos hoy</h2>
+              <p className="mt-1 text-xs text-slate-400">{ventasHoy.length} líneas · {productosVendidosHoy} unidades</p>
+            </div>
+            {productosMasVendidos.length ? (
+              <ol className="divide-y divide-white/5">
+                {productosMasVendidos.map((producto, indice) => (
+                  <li key={producto.codigo} className="flex items-center gap-3 py-3">
+                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md border border-white/10 bg-white/5 text-xs font-bold text-slate-300">{indice + 1}</span>
+                    <span className="min-w-0 flex-1">
+                      <strong className="block truncate text-sm">{producto.nombre}</strong>
+                      <small className="text-xs text-slate-500">{producto.codigo}</small>
+                    </span>
+                    <span className="whitespace-nowrap text-sm font-bold text-sky-300">{producto.cantidad} uds.</span>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className="py-10 text-center text-sm text-slate-500">Aún no hay ventas registradas hoy.</p>
+            )}
+          </article>
+        </section>
 
         <section className="overflow-hidden rounded-xl border border-white/10 bg-[#0f0f0f]">
           <div className="flex items-center justify-between gap-4 border-b border-white/10 p-5">

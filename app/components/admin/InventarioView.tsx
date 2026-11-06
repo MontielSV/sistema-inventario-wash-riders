@@ -29,6 +29,8 @@ interface Movimiento {
   motivo_tipo: string;
   motivo: string;
   precio_unitario: number;
+  transaccion_id?: string | null;
+  codigo_seguimiento?: string | null;
 }
 
 const MOTIVOS: Record<string, string> = {
@@ -148,6 +150,7 @@ export default function InventarioView() {
     const coincideBusqueda = !termino || [
       movimiento.nombre_producto,
       movimiento.codigo_producto,
+      movimiento.codigo_seguimiento,
       movimiento.motivo,
       MOTIVOS[movimiento.motivo_tipo],
     ].some((valor) => valor?.toLocaleLowerCase().includes(termino));
@@ -166,6 +169,14 @@ export default function InventarioView() {
     setMotivo('');
     setFecha(getLocalDateTimeInput());
   };
+
+  const gruposMovimiento = movimientosFiltrados.reduce((grupos, movimiento) => {
+    const clave = movimiento.transaccion_id || `movimiento-${movimiento.id}`;
+    const grupo = grupos.get(clave) || [];
+    grupo.push(movimiento);
+    grupos.set(clave, grupo);
+    return grupos;
+  }, new Map<string, Movimiento[]>());
 
   return (
     <div className="min-h-screen bg-[#030303] text-white p-4 md:p-8 font-sans">
@@ -367,59 +378,92 @@ export default function InventarioView() {
                   <thead>
                     <tr className="border-b border-white/10 text-xs text-slate-400 uppercase tracking-wider bg-black/40">
                       <th className="p-3 pl-4">Fecha</th>
-                      <th className="p-3">Producto</th>
-                      <th className="p-3">Código</th>
+                      <th className="p-3">Seguimiento</th>
+                      <th className="p-3">Productos</th>
                       <th className="p-3">Tipo / Motivo</th>
-                      <th className="p-3">Cantidad</th>
-                      <th className="p-3 pr-4">Nota</th>
+                      <th className="p-3">Unidades</th>
+                      <th className="p-3">Total venta</th>
                       <th className="p-3 text-right">Acciones</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5 text-sm">
-                    {movimientosFiltrados.map((m) => (
-                      <tr key={m.id} className="hover:bg-white/5 transition-all">
-                        <td className="p-3 pl-4 font-mono text-xs text-slate-400">
-                          {new Date(m.fecha).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}
-                        </td>
-                        <td className="p-3 font-bold text-white">{m.nombre_producto || `Prod #${m.producto_id}`}</td>
-                        <td className="p-3 font-mono text-xs text-slate-400">{m.codigo_producto || '-'}</td>
-                        <td className="p-3">
-                          {m.tipo === 'ENTRADA' ? (
-                            <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-400">
-                              <ArrowDownCircleIcon className="w-4 h-4" /> {MOTIVOS[m.motivo_tipo] || 'Entrada'}
+                    {Array.from(gruposMovimiento.entries()).map(([clave, grupo]) => {
+                      const principal = grupo[0];
+                      const esVenta = principal.motivo_tipo === 'VENTA' || principal.tipo === 'VENTA';
+                      const unidades = grupo.reduce((total, item) => total + Number(item.cantidad), 0);
+                      const totalVenta = esVenta
+                        ? grupo.reduce((total, item) => total + Number(item.cantidad) * Number(item.precio_unitario), 0)
+                        : 0;
+                      return (
+                        <tr key={clave} className="hover:bg-white/5 transition-all">
+                          <td className="p-3 pl-4 align-top">
+                            <span className="block whitespace-nowrap font-mono text-xs text-slate-400">
+                              {new Date(principal.fecha).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}
                             </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 text-xs font-bold text-red-400">
-                              <ArrowUpCircleIcon className="w-4 h-4" /> {m.tipo === 'VENTA' || m.motivo_tipo === 'VENTA' ? 'Venta' : MOTIVOS[m.motivo_tipo] || 'Salida'}
-                            </span>
-                          )}
-                        </td>
-                        <td className="p-3 font-mono font-bold text-white">{m.cantidad}</td>
-                        <td className="p-3 pr-4 text-xs text-slate-400">{m.motivo || '-'}</td>
-                        <td className="p-3 text-right">
-                          {m.tipo !== 'VENTA' && (
-                            <button
-                              type="button"
-                              title="Editar movimiento"
-                              aria-label={`Editar movimiento de ${m.nombre_producto || 'producto'}`}
-                              onClick={() => {
-                                setMovimientoEditando(m.id);
-                                setProductoId(m.producto_id);
-                                setTipo(m.tipo === 'ENTRADA' ? 'ENTRADA' : 'SALIDA');
-                                setMotivoTipo(m.motivo_tipo);
-                                setCantidad(Number(m.cantidad));
-                                setMotivo(m.motivo || '');
-                                setFecha(toLocalDateTimeInput(m.fecha));
-                                document.getElementById('form-movimiento')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                              }}
-                              className="rounded-md border border-white/10 p-2 text-slate-300 transition-colors hover:border-[#E50914]/50 hover:text-white"
-                            >
-                              <PencilSquareIcon className="h-4 w-4" />
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
+                            <span className="font-mono text-[10px] text-emerald-300">{principal.codigo_seguimiento || '-'}</span>
+                          </td>
+                          <td className="p-3 align-top">
+                            {grupo.length === 1 ? (
+                              <>
+                                <span className="block font-bold text-white">{principal.nombre_producto || `Prod #${principal.producto_id}`}</span>
+                                <span className="font-mono text-xs text-slate-400">{principal.codigo_producto || '-'}</span>
+                                {principal.motivo && <span className="mt-1 block max-w-56 text-xs text-slate-500">{principal.motivo}</span>}
+                              </>
+                            ) : (
+                              <details>
+                                <summary className="cursor-pointer font-bold text-white">{principal.nombre_producto} + {grupo.length - 1} productos</summary>
+                                <ul className="mt-2 space-y-1 text-xs text-slate-400">
+                                  {grupo.map((item) => (
+                                    <li key={item.id}>{item.nombre_producto} ({item.codigo_producto || '-'}) · {item.cantidad} uds.</li>
+                                  ))}
+                                </ul>
+                              </details>
+                            )}
+                          </td>
+                          <td className="p-3 align-top">
+                            {esVenta ? (
+                              <span className="inline-flex items-center gap-1 text-xs font-bold text-red-400">
+                                <ArrowUpCircleIcon className="h-4 w-4" /> Venta
+                              </span>
+                            ) : principal.tipo === 'ENTRADA' ? (
+                              <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-400">
+                                <ArrowDownCircleIcon className="h-4 w-4" /> {MOTIVOS[principal.motivo_tipo] || 'Entrada'}
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-xs font-bold text-red-400">
+                                <ArrowUpCircleIcon className="h-4 w-4" /> {MOTIVOS[principal.motivo_tipo] || 'Salida'}
+                              </span>
+                            )}
+                          </td>
+                          <td className="p-3 align-top font-mono font-bold text-white">{unidades}</td>
+                          <td className="p-3 align-top font-mono text-xs text-slate-300">
+                            {esVenta ? `$${totalVenta.toLocaleString('es-CO')} COP` : '-'}
+                          </td>
+                          <td className="p-3 text-right align-top">
+                            {grupo.length === 1 && !esVenta && (
+                              <button
+                                type="button"
+                                title="Editar movimiento"
+                                aria-label={`Editar movimiento de ${principal.nombre_producto || 'producto'}`}
+                                onClick={() => {
+                                  setMovimientoEditando(principal.id);
+                                  setProductoId(principal.producto_id);
+                                  setTipo(principal.tipo === 'ENTRADA' ? 'ENTRADA' : 'SALIDA');
+                                  setMotivoTipo(principal.motivo_tipo);
+                                  setCantidad(Number(principal.cantidad));
+                                  setMotivo(principal.motivo || '');
+                                  setFecha(toLocalDateTimeInput(principal.fecha));
+                                  document.getElementById('form-movimiento')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                }}
+                                className="rounded-md border border-white/10 p-2 text-slate-300 transition-colors hover:border-[#E50914]/50 hover:text-white"
+                              >
+                                <PencilSquareIcon className="h-4 w-4" />
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

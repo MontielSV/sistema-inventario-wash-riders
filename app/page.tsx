@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar';
 import DashboardView from './components/admin/DashboardView';
 import ProductosView from './components/admin/ProductosView';
 import InventarioView from './components/admin/InventarioView';
+import RegistrarVentaView from './components/admin/RegistrarVentaView';
 import ReportePDFView from './components/ReportePDFView';
 import { LockClosedIcon, UserIcon } from '@heroicons/react/24/outline';
 
@@ -155,6 +156,7 @@ export default function Home() {
       <main className="min-w-0 flex-1 overflow-y-auto">
         {vistaActiva === 'dashboard' && <DashboardView />}
         {vistaActiva === 'productos' && <ProductosView />}
+        {vistaActiva === 'ventas' && <RegistrarVentaView />}
         {vistaActiva === 'historial' && <InventarioView />}
         {vistaActiva === 'pdf' && <ReportePDFView />}
       </main>

@@ -21,7 +21,8 @@ export async function GET(request: Request) {
     await ensureInventoryTables();
     const result = await pool.query(`
             SELECT m.id, m.producto_id, p.nombre AS nombre_producto, p.codigo AS codigo_producto,
-              m.tipo, m.cantidad, m.motivo_tipo, m.motivo, m.precio_unitario, m.fecha
+                    m.tipo, m.cantidad, m.motivo_tipo, m.motivo, m.precio_unitario, m.fecha,
+                    m.transaccion_id, m.codigo_seguimiento
       FROM movimientos m
       LEFT JOIN productos p ON p.id = m.producto_id
       ORDER BY m.fecha DESC, m.id DESC
@@ -132,6 +133,13 @@ export async function PUT(request: Request) {
     }
 
     const old = existing.rows[0];
+    if (old.motivo_tipo === 'VENTA' || old.transaccion_id) {
+      await client.query('ROLLBACK');
+      return NextResponse.json(
+        { error: 'Las ventas agrupadas se conservan como una sola operación y no se editan desde movimientos manuales.' },
+        { status: 409 }
+      );
+    }
     const productIds = [...new Set([Number(old.producto_id), productoId])].sort((a, b) => a - b);
     const products = await client.query(
       'SELECT id, stock_actual, precio FROM productos WHERE id = ANY($1::int[]) ORDER BY id FOR UPDATE',
