@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import Sidebar from './components/Sidebar';
 import DashboardView from './components/admin/DashboardView';
 import ProductosView from './components/admin/ProductosView';
-import RegistrarVentaView from './components/admin/RegistrarVentaView';
 import InventarioView from './components/admin/InventarioView';
 import ReportePDFView from './components/ReportePDFView';
 import { LockClosedIcon, UserIcon } from '@heroicons/react/24/outline';
@@ -11,7 +10,7 @@ import { LockClosedIcon, UserIcon } from '@heroicons/react/24/outline';
 export default function Home() {
   const [autenticado, setAutenticado] = useState(false);
   const [cargandoSesion, setCargandoSesion] = useState(true);
-  const [vistaActiva, setVistaActiva] = useState('inicio');
+  const [vistaActiva, setVistaActiva] = useState('dashboard');
   
   // Estados para el login
   const [usuario, setUsuario] = useState('');
@@ -56,7 +55,7 @@ export default function Home() {
   const handleLogout = async () => {
     await fetch('/api/login', { method: 'DELETE' });
     setAutenticado(false);
-    setVistaActiva('inicio');
+    setVistaActiva('dashboard');
   };
 
   if (cargandoSesion) {
@@ -67,6 +66,7 @@ export default function Home() {
     );
   }
 
+  // 1. Si no está autenticado, muestra la Pantalla de Login
   if (!autenticado) {
     return (
       <div className="min-h-screen bg-[#030303] text-white flex items-center justify-center p-4 font-sans bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(229,9,20,0.15),rgba(0,0,0,0))]">
@@ -125,11 +125,26 @@ export default function Home() {
               {cargandoLogin ? 'Ingresando...' : 'Iniciar Sesión'}
             </button>
           </form>
+
+          <p className="text-[10px] text-center text-slate-600 uppercase tracking-wider">
+            Acceso restringido únicamente para personal autorizado
+          </p>
+          {process.env.NEXT_PUBLIC_DEVELOPER_EMAIL ? (
+            <a
+              href={`mailto:${process.env.NEXT_PUBLIC_DEVELOPER_EMAIL}?subject=Soporte%20Wash%20Riders`}
+              className="block text-center text-xs font-semibold text-slate-400 underline decoration-white/20 underline-offset-4 transition-colors hover:text-white"
+            >
+              Contactar al desarrollador
+            </a>
+          ) : (
+            <p className="text-center text-xs font-semibold text-slate-400">Contactar al desarrollador</p>
+          )}
         </div>
       </div>
     );
   }
 
+  // 2. Si está autenticado, muestra el Panel con Sidebar Lateral
   return (
     <div className="flex min-h-screen flex-col bg-[#030303] lg:flex-row">
       <Sidebar 
@@ -138,12 +153,10 @@ export default function Home() {
         onLogout={handleLogout} 
       />
       <main className="min-w-0 flex-1 overflow-y-auto">
-        {vistaActiva === 'inicio' && <DashboardView />}
+        {vistaActiva === 'dashboard' && <DashboardView />}
         {vistaActiva === 'productos' && <ProductosView />}
-        {vistaActiva === 'registrar-venta' && <RegistrarVentaView />}
         {vistaActiva === 'historial' && <InventarioView />}
-        {vistaActiva === 'reporte-ventas' && <ReportePDFView />}
-        {vistaActiva === 'reporte-mensual' && <ReportePDFView />}
+        {vistaActiva === 'pdf' && <ReportePDFView />}
       </main>
     </div>
   );
