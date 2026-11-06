@@ -59,6 +59,10 @@ html, body {
   color: #1e293b !important;
 }
 
+.inventory-light .stock-refresh-button {
+  color: #fff !important;
+}
+
 .inventory-light [class~="bg-[#E50914]"],
 .inventory-light [class~="bg-red-700"] {
   background-color: #1f5a8a !important;
@@ -136,4 +140,200 @@ html, body {
 
 .inventory-light [class~="hover:text-white"]:hover {
   color: #123b60 !important;
+}
+
+.app-theme-dark {
+  color-scheme: dark;
+  background-color: #020617;
+  color: #e2e8f0;
+}
+
+.app-theme-dark [class~="bg-slate-50"] {
+  background-color: #0f172a !important;
+}
+
+.app-theme-dark [class~="bg-slate-100"] {
+  background-color: #1e293b !important;
+}
+
+.app-theme-dark [class~="bg-white"] {
+  background-color: #172334 !important;
+}
+
+.app-theme-dark [class~="bg-blue-50"] {
+  background-color: #172b45 !important;
+}
+
+.app-theme-dark [class~="bg-blue-100"] {
+  background-color: #1e3a5f !important;
+}
+
+.app-theme-dark [class~="bg-red-50"],
+.app-theme-dark [class~="bg-rose-50"] {
+  background-color: #451a1a !important;
+}
+
+.app-theme-dark [class~="bg-amber-50"] {
+  background-color: #422006 !important;
+}
+
+.app-theme-dark [class~="bg-emerald-50"] {
+  background-color: #064e3b !important;
+}
+
+.app-theme-dark [class~="border-slate-100"],
+.app-theme-dark [class~="border-slate-200"] {
+  border-color: #334155 !important;
+}
+
+.app-theme-dark [class~="divide-slate-100"] > :not([hidden]) ~ :not([hidden]) {
+  border-color: #334155 !important;
+}
+
+.app-theme-dark [class~="text-slate-900"],
+.app-theme-dark [class~="text-slate-800"],
+.app-theme-dark [class~="text-slate-700"] {
+  color: #e2e8f0 !important;
+}
+
+.app-theme-dark [class~="text-slate-600"],
+.app-theme-dark [class~="text-slate-500"],
+.app-theme-dark [class~="text-slate-400"] {
+  color: #a7b4c5 !important;
+}
+
+.app-theme-dark [class~="text-blue-900"],
+.app-theme-dark [class~="text-blue-800"],
+.app-theme-dark [class~="text-blue-700"] {
+  color: #93c5fd !important;
+}
+
+.app-theme-dark [class~="text-amber-800"],
+.app-theme-dark [class~="text-amber-700"] {
+  color: #fcd34d !important;
+}
+
+.app-theme-dark [class~="text-red-800"],
+.app-theme-dark [class~="text-rose-700"] {
+  color: #fda4af !important;
+}
+
+.app-theme-dark [class~="text-emerald-800"] {
+  color: #6ee7b7 !important;
+}
+
+.app-theme-dark [class~="hover:bg-blue-50"]:hover {
+  background-color: #1e3a5f !important;
+}
+
+.app-theme-dark [class~="hover:bg-slate-50"]:hover {
+  background-color: #1e293b !important;
+}
+
+.app-theme-dark .inventory-light {
+  color-scheme: dark;
+  color: #e2e8f0;
+}
+
+.app-theme-dark .inventory-light[class~="bg-[#030303]"] {
+  background-color: #030303 !important;
+}
+
+.app-theme-dark .inventory-light [class~="bg-[#0f0f0f]"],
+.app-theme-dark .inventory-light [class~="bg-[#0f0f0f]/95"] {
+  background-color: #0f0f0f !important;
+}
+
+.app-theme-dark .inventory-light [class~="bg-black/60"],
+.app-theme-dark .inventory-light [class~="bg-black/50"],
+.app-theme-dark .inventory-light [class~="bg-black/40"],
+.app-theme-dark .inventory-light [class~="bg-black/30"] {
+  background-color: rgb(0 0 0 / 60%) !important;
+}
+
+.app-theme-dark .inventory-light [class~="bg-zinc-800"] {
+  background-color: #27272a !important;
+}
+
+.app-theme-dark .inventory-light [class~="text-white"] {
+  color: #fff !important;
+}
+
+.app-theme-dark .inventory-light [class~="bg-[#E50914]"],
+.app-theme-dark .inventory-light [class~="bg-red-700"] {
+  background-color: #e50914 !important;
+  color: #fff !important;
+}
+
+.app-theme-dark .inventory-light [class~="text-[#E50914]"] {
+  color: #e50914 !important;
+}
+
+.app-theme-dark .inventory-light [class~="border-[#E50914]"],
+.app-theme-dark .inventory-light [class~="focus:border-[#E50914]"]:focus {
+  border-color: #e50914 !important;
+}
+
+.app-theme-dark .inventory-light [class~="border-white/10"],
+.app-theme-dark .inventory-light [class~="border-white/5"] {
+  border-color: rgb(255 255 255 / 10%) !important;
+}
+
+.app-theme-dark .inventory-light [class~="divide-white/5"] > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgb(255 255 255 / 5%) !important;
+}
+
+.app-theme-dark .inventory-light [class~="text-slate-300"] {
+  color: #cbd5e1 !important;
+}
+
+.app-theme-dark .inventory-light [class~="text-slate-400"],
+.app-theme-dark .inventory-light [class~="text-slate-500"] {
+  color: #94a3b8 !important;
+}
+
+.app-theme-dark .inventory-light [class~="text-emerald-300"],
+.app-theme-dark .inventory-light [class~="text-emerald-400"] {
+  color: #6ee7b7 !important;
+}
+
+.app-theme-dark .inventory-light [class~="text-sky-300"],
+.app-theme-dark .inventory-light [class~="text-sky-400"] {
+  color: #7dd3fc !important;
+}
+
+.app-theme-dark .inventory-light [class~="text-amber-300"],
+.app-theme-dark .inventory-light [class~="text-amber-400"] {
+  color: #fcd34d !important;
+}
+
+.app-theme-dark .inventory-light [class~="text-red-300"],
+.app-theme-dark .inventory-light [class~="text-red-400"] {
+  color: #fca5a5 !important;
+}
+
+.app-theme-dark .inventory-light [class~="bg-white/5"],
+.app-theme-dark .inventory-light [class~="bg-white/[0.03]"],
+.app-theme-dark .inventory-light [class~="bg-white/[0.02]"] {
+  background-color: rgb(255 255 255 / 5%) !important;
+}
+
+.app-theme-dark .inventory-light [class~="bg-red-950/30"],
+.app-theme-dark .inventory-light [class~="bg-red-950/50"],
+.app-theme-dark .inventory-light [class~="bg-red-950/60"],
+.app-theme-dark .inventory-light [class~="bg-red-950/80"] {
+  background-color: rgb(69 10 10 / 70%) !important;
+}
+
+.app-theme-dark .inventory-light [class~="bg-emerald-950/80"] {
+  background-color: rgb(2 44 34 / 80%) !important;
+}
+
+.app-theme-dark .inventory-light [class~="hover:bg-white/5"]:hover,
+.app-theme-dark .inventory-light [class~="hover:bg-white/[0.02]"]:hover {
+  background-color: rgb(255 255 255 / 10%) !important;
+}
+
+.app-theme-dark .inventory-light [class~="hover:text-white"]:hover {
+  color: #fff !important;
 }

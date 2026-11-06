@@ -161,7 +161,7 @@ export default function RegistrarVentaView() {
             type="button"
             onClick={() => void cargarProductos()}
             disabled={cargando || procesando}
-            className="inline-flex items-center gap-2 self-start rounded-lg border border-white/15 px-4 py-2.5 text-sm font-bold text-slate-200 hover:bg-white/5 disabled:opacity-50 sm:self-auto"
+            className="stock-refresh-button inline-flex items-center gap-2 self-start rounded-lg bg-[#1f5a8a] px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#174a74] disabled:cursor-not-allowed disabled:opacity-60 sm:self-auto"
           >
             <ArrowPathIcon className={`h-4 w-4 ${cargando ? 'animate-spin' : ''}`} /> Actualizar stock
           </button>

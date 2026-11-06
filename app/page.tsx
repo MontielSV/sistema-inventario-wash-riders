@@ -8,10 +8,13 @@ import RegistrarVentaView from './components/admin/RegistrarVentaView';
 import ReportesInventarioView from './components/admin/ReportesInventarioView';
 import { CubeIcon, LockClosedIcon, UserIcon } from '@heroicons/react/24/outline';
 
+type Tema = 'light' | 'dark';
+
 export default function Home() {
   const [autenticado, setAutenticado] = useState(false);
   const [cargandoSesion, setCargandoSesion] = useState(true);
   const [vistaActiva, setVistaActiva] = useState('dashboard');
+  const [tema, setTema] = useState<Tema>('light');
   
   // Estados para el login
   const [usuario, setUsuario] = useState('');
@@ -26,6 +29,17 @@ export default function Home() {
       .catch(() => setAutenticado(false))
       .finally(() => setCargandoSesion(false));
   }, []);
+
+  useEffect(() => {
+    const temaGuardado = window.localStorage.getItem('wash-riders-theme');
+    if (temaGuardado === 'light' || temaGuardado === 'dark') setTema(temaGuardado);
+  }, []);
+
+  const cambiarTema = () => {
+    const nuevoTema = tema === 'light' ? 'dark' : 'light';
+    setTema(nuevoTema);
+    window.localStorage.setItem('wash-riders-theme', nuevoTema);
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -166,11 +180,13 @@ export default function Home() {
 
   // 2. Si está autenticado, muestra el Panel con Sidebar Lateral
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50 lg:flex-row">
+    <div className={`app-shell flex min-h-screen flex-col lg:flex-row ${tema === 'dark' ? 'app-theme-dark bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
       <Sidebar 
         vistaActiva={vistaActiva} 
         setVistaActiva={setVistaActiva} 
         onLogout={handleLogout} 
+        tema={tema}
+        onToggleTheme={cambiarTema}
       />
       <main className="flex min-w-0 flex-1 flex-col">
         <div className="min-h-screen flex-1">
