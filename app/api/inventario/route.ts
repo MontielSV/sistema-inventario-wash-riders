@@ -21,14 +21,33 @@ export async function GET(request: Request) {
 
   try {
     await ensureInventoryTables();
+    const url = new URL(request.url);
+    const desde = url.searchParams.get('desde');
+    const hasta = url.searchParams.get('hasta');
+    const esFechaIsoValida = (valor: string | null) => {
+      if (!valor || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(valor)) return false;
+      const fecha = new Date(valor);
+      return !Number.isNaN(fecha.getTime()) && fecha.toISOString() === valor;
+    };
+    const rangoValido = esFechaIsoValida(desde) && esFechaIsoValida(hasta);
+
+    if (
+      (desde || hasta) &&
+      (!rangoValido || Date.parse(desde ?? '') >= Date.parse(hasta ?? ''))
+    ) {
+      return NextResponse.json({ error: 'El rango de fechas no es válido.' }, { status: 400 });
+    }
+
+    const filtroFechas = desde && hasta ? 'WHERE m.fecha >= $1::timestamptz AND m.fecha < $2::timestamptz' : '';
     const result = await pool.query(`
             SELECT m.id, m.producto_id, p.nombre AS nombre_producto, p.codigo AS codigo_producto,
                     m.tipo, m.cantidad, m.motivo_tipo, m.motivo, m.precio_unitario, m.fecha,
                     m.transaccion_id, m.codigo_seguimiento
       FROM movimientos m
       LEFT JOIN productos p ON p.id = m.producto_id
+      ${filtroFechas}
       ORDER BY m.fecha DESC, m.id DESC
-    `);
+    `, desde && hasta ? [desde, hasta] : []);
     return NextResponse.json(result.rows);
   } catch (error) {
     console.error('Error al consultar movimientos:', error);

@@ -100,32 +100,80 @@ function OperacionDetalle({ venta, etiqueta }: { venta: VentaAgrupada; etiqueta:
 }
 
 export default function ReportesInventarioView({ modo }: ReportesInventarioViewProps) {
-  const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
+  const [resultadoMovimientos, setResultadoMovimientos] = useState<{ periodo: string; datos: Movimiento[] } | null>(null);
+  const [periodoCargado, setPeriodoCargado] = useState('');
   const [productos, setProductos] = useState<ProductoCatalogo[]>([]);
   const [fecha, setFecha] = useState(hoy);
   const [mes, setMes] = useState(mesActual);
-  const [cargando, setCargando] = useState(true);
-  const [error, setError] = useState('');
+  const [errorMovimientos, setErrorMovimientos] = useState<{ periodo: string; mensaje: string } | null>(null);
+  const [errorProductos, setErrorProductos] = useState('');
+  const periodoSeleccionado = modo === 'mensual' ? mes : fecha;
+  const cargando = periodoCargado !== periodoSeleccionado;
+  const movimientos = !cargando &&
+    errorMovimientos?.periodo !== periodoSeleccionado &&
+    resultadoMovimientos?.periodo === periodoSeleccionado
+    ? resultadoMovimientos.datos
+    : [];
 
   useEffect(() => {
-    Promise.all([
-      fetch('/api/inventario', { cache: 'no-store' }),
-      fetch('/api/productos', { cache: 'no-store' }),
-    ])
-      .then(async ([respuestaMovimientos, respuestaProductos]) => {
-        const [datosMovimientos, datosProductos] = await Promise.all([
-          respuestaMovimientos.json(),
-          respuestaProductos.json(),
-        ]);
-        if (!respuestaMovimientos.ok) throw new Error(datosMovimientos.error || 'No se pudieron cargar las ventas.');
-        if (!respuestaProductos.ok) throw new Error(datosProductos.error || 'No se pudo cargar el catálogo de productos.');
-        setMovimientos(Array.isArray(datosMovimientos) ? datosMovimientos : []);
-        setProductos(Array.isArray(datosProductos) ? datosProductos : []);
+    const controller = new AbortController();
+    fetch('/api/productos', { cache: 'no-store', signal: controller.signal })
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'No se pudo cargar el catálogo de productos.');
+        setProductos(Array.isArray(data) ? data : []);
       })
-      .catch((caught) => setError(caught instanceof Error ? caught.message : 'Error al cargar los reportes.'))
-      .finally(() => setCargando(false));
+      .catch((caught) => {
+        if (!controller.signal.aborted) {
+          setErrorProductos(caught instanceof Error ? caught.message : 'Error al cargar el catálogo de productos.');
+        }
+      });
+
+    return () => controller.abort();
   }, []);
 
+  useEffect(() => {
+    const controller = new AbortController();
+    const [anio, numeroMes, dia] = periodoSeleccionado.split('-').map(Number);
+    const desde = modo === 'mensual'
+      ? new Date(anio, numeroMes - 2, 1)
+      : new Date(anio, numeroMes - 1, dia);
+    const hasta = modo === 'mensual'
+      ? new Date(anio, numeroMes, 1)
+      : new Date(anio, numeroMes - 1, dia + 1);
+    const parametros = new URLSearchParams({
+      desde: desde.toISOString(),
+      hasta: hasta.toISOString(),
+    });
+
+    fetch(`/api/inventario?${parametros}`, { cache: 'no-store', signal: controller.signal })
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'No se pudieron cargar las ventas.');
+        setErrorMovimientos(null);
+        setResultadoMovimientos({
+          periodo: periodoSeleccionado,
+          datos: Array.isArray(data) ? data : [],
+        });
+      })
+      .catch((caught) => {
+        if (!controller.signal.aborted) {
+          setErrorMovimientos({
+            periodo: periodoSeleccionado,
+            mensaje: caught instanceof Error ? caught.message : 'Error al cargar los reportes.',
+          });
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setPeriodoCargado(periodoSeleccionado);
+      });
+
+    return () => controller.abort();
+  }, [periodoSeleccionado, modo]);
+
+  const error = errorMovimientos?.periodo === periodoSeleccionado
+    ? errorMovimientos.mensaje
+    : errorProductos;
   const ventasPeriodo = movimientos.filter((movimiento) => {
     if (!esVenta(movimiento)) return false;
     const claveFecha = fechaLocal(movimiento.fecha);
@@ -244,12 +292,12 @@ export default function ReportesInventarioView({ modo }: ReportesInventarioViewP
           {modo === 'diario' ? (
             <label className="text-xs font-bold uppercase text-slate-600">
               Fecha de consulta
-              <input type="date" max={hoy()} value={fecha} onChange={(event) => setFecha(event.target.value)} className="mt-2 block rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100" />
+              <input type="date" max={hoy()} value={fecha} onChange={(event) => { if (event.target.value) setFecha(event.target.value); }} className="mt-2 block rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100" />
             </label>
           ) : (
             <label className="text-xs font-bold uppercase text-slate-600">
               Mes del informe
-              <input type="month" max={mesActual()} value={mes} onChange={(event) => setMes(event.target.value)} className="mt-2 block rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100" />
+              <input type="month" max={mesActual()} value={mes} onChange={(event) => { if (event.target.value) setMes(event.target.value); }} className="mt-2 block rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100" />
             </label>
           )}
           <CalendarDaysIcon className="mb-2 h-5 w-5 text-blue-700" />
