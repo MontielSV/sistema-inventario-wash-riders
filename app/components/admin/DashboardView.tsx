@@ -61,7 +61,7 @@ export default function DashboardView() {
       } catch (err: any) {
         console.error("Error conectando a la API:", err);
         setErrorSQL(err.message || "No se pudo conectar con el servidor.");
-      } finally {
+      } font-black {
         setCargando(false);
       }
     };
@@ -80,7 +80,7 @@ export default function DashboardView() {
     const csvContent = "data:text/csv;charset=utf-8," + lineas.join("\n");
     const link = document.createElement("a");
     link.href = encodeURI(csvContent);
-    link.download = `Reporte_${nombreReporte}_MrKings_${new Date().toLocaleDateString('es-CO')}.csv`;
+    link.download = `Reporte_${nombreReporte}_WashRiders_${new Date().toLocaleDateString('es-CO')}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -133,10 +133,10 @@ export default function DashboardView() {
           <div>
             <div className="flex items-center gap-3 mb-2">
               <span className="relative flex h-3 w-3"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#E50914] opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-[#E50914]"></span></span>
-              <span className="text-[10px] text-[#E50914] font-black uppercase tracking-widest bg-red-950/40 px-3 py-1 rounded-md border border-red-500/30">Enterprise Operations Command</span>
+              <span className="text-[10px] text-[#E50914] font-black uppercase tracking-widest bg-red-950/40 px-3 py-1 rounded-md border border-red-500/30">Sistema de Gestíon e Inventarios</span>
             </div>
             <h1 className="text-3xl md:text-5xl font-black italic tracking-tighter">
-              Mr Kings <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-300 to-slate-500">Analytics</span>
+              Wash Riders <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-300 to-slate-500">Analytics</span>
             </h1>
           </div>
           <div className="flex items-center gap-4">
@@ -202,7 +202,7 @@ export default function DashboardView() {
               <div className="bg-[#0f0f0f]/95 p-8 rounded-[2.5rem] border border-white/10 flex flex-col md:flex-row justify-between items-start md:items-center shadow-2xl gap-4">
                 <div>
                   <h2 className="text-2xl font-black text-white italic flex items-center gap-2">
-                    <ArrowTrendingUpIcon className="w-6 h-6 text-[#E50914]" /> Apartado Especial: Ventas del Día (Hoy)
+                    <ArrowTrendingUpIcon className="w-6 h-6 text-[#E50914]" /> Apartado Especial: Movimientos del Día (Hoy)
                   </h2>
                   <p className="text-xs text-slate-400 mt-1">Desglose de la jornada actual en tiempo real</p>
                 </div>
@@ -224,7 +224,7 @@ export default function DashboardView() {
                   <h2 className="text-2xl font-black text-white italic flex items-center gap-2">
                     <ChartBarIcon className="w-6 h-6 text-[#E50914]" /> Apartado Especial: Acumulado 7 Días
                   </h2>
-                  <p className="text-xs text-slate-400 mt-1">Comportamiento financiero de la última semana</p>
+                  <p className="text-xs text-slate-400 mt-1">Comportamiento del inventario en la última semana</p>
                 </div>
                 <button onClick={() => exportarCSV('7Dias', { ventasSemana: data.finanzas.ventasSemana })} className="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-5 py-3 rounded-xl text-xs uppercase shadow-lg active:scale-95 transition-all flex items-center gap-2">
                   <ArrowDownTrayIcon className="w-4 h-4" /> Exportar CSV Semana
@@ -235,7 +235,7 @@ export default function DashboardView() {
                   <span className="text-slate-300 font-bold text-sm">Total Acumulado de la Semana</span>
                   <span className="text-emerald-400 font-black text-3xl font-mono">${Number(data.finanzas.ventasSemana || 0).toLocaleString('es-CO')}</span>
                 </div>
-                <p className="text-xs text-slate-500 italic px-2">Datos consolidados directamente desde la base de datos PostgreSQL.</p>
+                <p className="text-xs text-slate-500 italic px-2">Datos consolidados directamente desde la base de datos PostgreSQL en Neon.</p>
               </div>
             </div>
           )}
@@ -255,10 +255,10 @@ export default function DashboardView() {
               </div>
               <div className="bg-[#0f0f0f]/95 p-8 rounded-[2.5rem] border border-white/10 shadow-2xl space-y-4">
                 <div className="flex justify-between items-center bg-black/50 p-6 rounded-2xl border border-white/5 hover:border-white/20 transition-all">
-                  <span className="text-slate-300 font-bold text-sm">Ventas Totales del Mes</span>
+                  <span className="text-slate-300 font-bold text-sm">Movimientos Totales del Mes</span>
                   <span className="text-emerald-400 font-black text-3xl font-mono">${Number(data.finanzas.ventasMes || 0).toLocaleString('es-CO')}</span>
                 </div>
-                <p className="text-xs text-slate-500 italic px-2">Proyección y cierre de caja sincronizados con el servidor.</p>
+                <p className="text-xs text-slate-500 italic px-2">Proyección y valorización de inventario sincronizados con el servidor.</p>
               </div>
             </div>
           )}
@@ -278,7 +278,7 @@ export default function DashboardView() {
               </div>
               <div className="bg-[#0f0f0f]/95 p-8 rounded-[2.5rem] border border-white/10 shadow-2xl space-y-4">
                 <div className="flex justify-between items-center bg-black/50 p-6 rounded-2xl border border-white/5 hover:border-white/20 transition-all">
-                  <span className="text-slate-300 font-bold text-sm">Ingresos Totales (Semestre)</span>
+                  <span className="text-slate-300 font-bold text-sm">Valor de Inventario (Semestre)</span>
                   <span className="text-emerald-400 font-black text-3xl font-mono">${Number(data.finanzas.ventasSemestral || 0).toLocaleString('es-CO')}</span>
                 </div>
                 <p className="text-xs text-slate-500 italic px-2">Análisis de rendimiento a mediano plazo para reinversión operativa.</p>
@@ -308,7 +308,7 @@ export default function DashboardView() {
                   <ScaleIcon className="w-6 h-6 text-amber-500 shrink-0" />
                   <div>
                     <p className="text-xs font-bold text-amber-500 uppercase tracking-widest mb-1">Nota de Cumplimiento</p>
-                    <p className="text-xs text-amber-200/70">Este balance representa los ingresos operativos procesados a través del sistema Mr Kings Arepa. Debe ser validado por el contador asignado antes de la presentación del Formulario 300/110.</p>
+                    <p className="text-xs text-amber-200/70">Este balance representa las operaciones procesadas a través del sistema Wash Riders. Debe ser validado por el contador asignado antes de la presentación tributaria.</p>
                   </div>
                 </div>
               </div>
@@ -322,7 +322,7 @@ export default function DashboardView() {
                   <h2 className="text-2xl font-black text-white italic flex items-center gap-2">
                     <TagIcon className="w-6 h-6 text-[#E50914]" /> Apartado Especial: Análisis de Ticket Promedio
                   </h2>
-                  <p className="text-xs text-slate-400 mt-1">Valor medio por orden y rendimiento de consumo</p>
+                  <p className="text-xs text-slate-400 mt-1">Valor medio por movimiento y rendimiento</p>
                 </div>
                 <button onClick={() => exportarCSV('TicketPromedio', { ticketPromedio: data.finanzas.ticketPromedio, transacciones: data.finanzas.transaccionesHoy })} className="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-5 py-3 rounded-xl text-xs uppercase shadow-lg active:scale-95 transition-all flex items-center gap-2">
                   <ArrowDownTrayIcon className="w-4 h-4" /> Exportar CSV Ticket
@@ -334,7 +334,7 @@ export default function DashboardView() {
                   <span className="text-[#E50914] font-black text-3xl font-mono">${Number(data.finanzas.ticketPromedio || 0).toLocaleString('es-CO')}</span>
                 </div>
                 <div className="flex justify-between items-center bg-black/50 p-6 rounded-2xl border border-white/5 hover:border-white/20 transition-all">
-                  <span className="text-slate-300 font-bold text-sm">Total Órdenes Procesadas</span>
+                  <span className="text-slate-300 font-bold text-sm">Total Transacciones Procesadas</span>
                   <span className="text-white font-black text-2xl font-mono">{data.finanzas.transaccionesHoy || 0}</span>
                 </div>
               </div>
