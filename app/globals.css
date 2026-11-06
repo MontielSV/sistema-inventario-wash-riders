@@ -17,6 +17,7 @@ html, body {
   }
 }
 
+
 /* Permitir scroll horizontal limpio para las categorías */
 .overflow-x-auto {
   -webkit-overflow-scrolling: touch;
