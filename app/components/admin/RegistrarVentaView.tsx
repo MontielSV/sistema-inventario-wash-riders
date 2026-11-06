@@ -209,6 +209,11 @@ export default function RegistrarVentaView() {
                         const disponible = Number(producto.stock_actual) - enCarrito;
                         const precioPendiente = tipo === 'VENTA' && Number(producto.precio) <= 0;
                         const deshabilitado = disponible < 1 || precioPendiente;
+                        const estadoProducto = disponible < 1
+                          ? `${Math.max(0, disponible)} disponibles`
+                          : precioPendiente
+                            ? 'Configurar precio'
+                            : `${disponible} disponibles`;
                         return (
                           <li key={producto.id} role="option" aria-selected={producto.id === productoId}>
                             <button
@@ -216,14 +221,14 @@ export default function RegistrarVentaView() {
                               disabled={deshabilitado}
                               onMouseDown={(event) => event.preventDefault()}
                               onClick={() => seleccionarProducto(producto)}
-                              className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-50"
+                              className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left hover:bg-blue-50 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:opacity-100"
                             >
                               <span className="min-w-0">
                                 <span className="block truncate text-sm font-semibold text-slate-800">{producto.nombre}</span>
                                 <span className="mt-0.5 block text-xs text-slate-500">{producto.codigo || 'Sin código'} · {formatoMoneda(Number(producto.precio))}</span>
                               </span>
                               <span className={`shrink-0 text-xs font-semibold ${deshabilitado ? 'text-amber-700' : 'text-blue-800'}`}>
-                                {precioPendiente ? 'Configurar precio' : `${disponible} disponibles`}
+                                {estadoProducto}
                               </span>
                             </button>
                           </li>

@@ -24,6 +24,13 @@ interface Movimiento {
   precio_unitario: number;
 }
 
+interface ProductoCatalogo {
+  id: number;
+  codigo: string | null;
+  nombre: string;
+  stock_actual: number;
+}
+
 interface VentaAgrupada {
   clave: string;
   codigo: string;
@@ -93,17 +100,26 @@ function VentaDetalle({ venta }: { venta: VentaAgrupada }) {
 
 export default function ReportesInventarioView({ modo }: ReportesInventarioViewProps) {
   const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
+  const [productos, setProductos] = useState<ProductoCatalogo[]>([]);
   const [fecha, setFecha] = useState(hoy);
   const [mes, setMes] = useState(mesActual);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch('/api/inventario', { cache: 'no-store' })
-      .then(async (response) => {
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || 'No se pudieron cargar las ventas.');
-        setMovimientos(Array.isArray(data) ? data : []);
+    Promise.all([
+      fetch('/api/inventario', { cache: 'no-store' }),
+      fetch('/api/productos', { cache: 'no-store' }),
+    ])
+      .then(async ([respuestaMovimientos, respuestaProductos]) => {
+        const [datosMovimientos, datosProductos] = await Promise.all([
+          respuestaMovimientos.json(),
+          respuestaProductos.json(),
+        ]);
+        if (!respuestaMovimientos.ok) throw new Error(datosMovimientos.error || 'No se pudieron cargar las ventas.');
+        if (!respuestaProductos.ok) throw new Error(datosProductos.error || 'No se pudo cargar el catálogo de productos.');
+        setMovimientos(Array.isArray(datosMovimientos) ? datosMovimientos : []);
+        setProductos(Array.isArray(datosProductos) ? datosProductos : []);
       })
       .catch((caught) => setError(caught instanceof Error ? caught.message : 'Error al cargar los reportes.'))
       .finally(() => setCargando(false));
@@ -120,6 +136,14 @@ export default function ReportesInventarioView({ modo }: ReportesInventarioViewP
   const diasConVentas = new Set(ventasAgrupadas.map((venta) => fechaLocal(venta.fecha))).size;
 
   const productosVendidos = new Map<string, { codigo: string; nombre: string; unidades: number }>();
+  productos.forEach((producto) => {
+    const codigo = producto.codigo || String(producto.id);
+    productosVendidos.set(codigo, {
+      codigo,
+      nombre: producto.nombre,
+      unidades: 0,
+    });
+  });
   ventasPeriodo.forEach((movimiento) => {
     const codigo = movimiento.codigo_producto || String(movimiento.producto_id);
     const producto = productosVendidos.get(codigo) || {
@@ -131,8 +155,11 @@ export default function ReportesInventarioView({ modo }: ReportesInventarioViewP
     productosVendidos.set(codigo, producto);
   });
   const rankingProductos = Array.from(productosVendidos.values()).sort((primero, segundo) => segundo.unidades - primero.unidades);
-  const productoMasVendido = rankingProductos[0];
+  const productoMasVendido = rankingProductos[0]?.unidades ? rankingProductos[0] : undefined;
   const productoMenosVendido = rankingProductos.at(-1);
+  const productosSinVentas = rankingProductos
+    .filter((producto) => producto.unidades === 0)
+    .sort((primero, segundo) => primero.nombre.localeCompare(segundo.nombre, 'es', { sensitivity: 'base' }));
 
   const [anio, numeroMes] = mes.split('-').map(Number);
   const ultimoDiaMes = new Date(anio, numeroMes, 0).getDate();
@@ -216,11 +243,12 @@ export default function ReportesInventarioView({ modo }: ReportesInventarioViewP
         {error && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">{error}</p>}
         {cargando && <p role="status" className="text-sm text-slate-500 print:hidden">Cargando movimientos...</p>}
 
-        <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
           <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"><p className="text-xs font-bold uppercase text-slate-500">Total vendido</p><p className="mt-2 text-2xl font-black text-blue-900">{formatoMoneda(totalPeriodo)}</p><p className="mt-1 text-xs capitalize text-slate-500">{modo === 'diario' ? new Date(`${fecha}T12:00:00`).toLocaleDateString('es-CO', { dateStyle: 'long' }) : new Date(`${mes}-01T12:00:00`).toLocaleDateString('es-CO', { month: 'long', year: 'numeric' })}</p></article>
           <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"><p className="text-xs font-bold uppercase text-slate-500">Ventas registradas</p><p className="mt-2 text-2xl font-black">{ventasAgrupadas.length}</p><p className="mt-1 text-xs text-slate-500">Transacciones del periodo</p></article>
           <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"><p className="text-xs font-bold uppercase text-slate-500">Unidades vendidas</p><p className="mt-2 text-2xl font-black">{unidadesPeriodo}</p><p className="mt-1 text-xs text-slate-500">En {ventasAgrupadas.length} operaciones</p></article>
           {modo === 'mensual' && <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"><p className="text-xs font-bold uppercase text-slate-500">Días con actividad</p><p className="mt-2 text-2xl font-black">{diasConVentas}</p><p className="mt-1 text-xs text-slate-500">Días con al menos una venta</p></article>}
+          {modo === 'mensual' && <article className="rounded-lg border border-amber-200 bg-amber-50/60 p-5"><p className="text-xs font-bold uppercase text-amber-800">Productos sin ventas</p><p className="mt-2 text-2xl font-black text-amber-900">{productosSinVentas.length}</p><p className="mt-1 text-xs text-amber-800">Del catálogo activo en el periodo</p></article>}
         </section>
 
         {modo === 'mensual' && (
@@ -251,6 +279,35 @@ export default function ReportesInventarioView({ modo }: ReportesInventarioViewP
           </section>
         )}
 
+        {modo === 'mensual' && (
+          <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+            <header className="flex items-center justify-between gap-4 border-b border-slate-200 px-5 py-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-amber-800">Sin movimiento de venta</p>
+                <h2 className="mt-1 font-bold">Productos no vendidos este mes</h2>
+              </div>
+              <span className="rounded-md bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-900">{productosSinVentas.length}</span>
+            </header>
+            {productosSinVentas.length ? (
+              <div className="max-h-80 overflow-y-auto">
+                <ul className="divide-y divide-slate-100">
+                  {productosSinVentas.map((producto) => (
+                    <li key={producto.codigo} className="flex items-center justify-between gap-4 px-5 py-3">
+                      <span className="min-w-0">
+                        <strong className="block truncate text-sm font-semibold text-slate-800">{producto.nombre}</strong>
+                        <span className="font-mono text-xs text-slate-500">{producto.codigo}</span>
+                      </span>
+                      <span className="shrink-0 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-900">0 vendidos</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <p className="px-5 py-8 text-center text-sm text-slate-500">Todos los productos del catálogo tuvieron ventas este mes.</p>
+            )}
+          </section>
+        )}
+
         <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
           <header className="flex items-center justify-between gap-4 border-b border-slate-200 px-5 py-4">
             <div><p className="text-[10px] font-bold uppercase tracking-wider text-blue-700">{modo === 'diario' ? 'Detalle diario' : 'Desglose mensual'}</p><h2 className="mt-1 font-bold">{modo === 'diario' ? 'Ventas de la fecha' : 'Registro de ventas'}</h2></div>
@@ -258,9 +315,9 @@ export default function ReportesInventarioView({ modo }: ReportesInventarioViewP
           </header>
           {modo === 'diario' ? (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[700px] text-left text-sm">
-                <thead className="bg-slate-50 text-xs uppercase text-slate-500"><tr><th className="px-4 py-3">Fecha y hora</th><th className="px-4 py-3">Producto</th><th className="px-4 py-3">Código</th><th className="px-4 py-3">Cantidad</th><th className="px-4 py-3">Motivo</th><th className="px-4 py-3 text-right">Importe</th></tr></thead>
-                <tbody className="divide-y divide-slate-100">{ventasPeriodo.map((item) => <tr key={item.id}><td className="whitespace-nowrap px-4 py-3 text-xs text-slate-500">{formatoFecha(item.fecha)}</td><td className="px-4 py-3 font-semibold">{item.nombre_producto || `Producto ${item.producto_id}`}</td><td className="px-4 py-3 font-mono text-xs text-slate-500">{item.codigo_producto || '—'}</td><td className="px-4 py-3">{item.cantidad} uds.</td><td className="px-4 py-3">{item.motivo}</td><td className="px-4 py-3 text-right font-semibold">{formatoMoneda(Number(item.cantidad) * Number(item.precio_unitario))}</td></tr>)}{!cargando && ventasPeriodo.length === 0 && <tr><td colSpan={6} className="px-4 py-10 text-center text-sm text-slate-500">No hay ventas en esta fecha.</td></tr>}</tbody>
+              <table className="w-full min-w-[780px] text-left text-sm">
+                <thead className="bg-slate-50 text-xs uppercase text-slate-500"><tr><th className="px-4 py-3">Código de seguimiento</th><th className="px-4 py-3">Fecha y hora</th><th className="px-4 py-3">Productos</th><th className="px-4 py-3">Unidades</th><th className="px-4 py-3">Motivo</th><th className="px-4 py-3 text-right">Total</th><th className="px-4 py-3 text-right">Detalle</th></tr></thead>
+                <tbody className="divide-y divide-slate-100">{ventasAgrupadas.map((venta) => <tr key={venta.clave}><td className="px-4 py-3 font-mono text-xs font-semibold text-blue-800">{venta.codigo}</td><td className="whitespace-nowrap px-4 py-3 text-xs text-slate-500">{formatoFecha(venta.fecha)}</td><td className="px-4 py-3">{venta.movimientos.length}</td><td className="px-4 py-3">{venta.unidades}</td><td className="px-4 py-3">{venta.motivo}</td><td className="px-4 py-3 text-right font-semibold">{formatoMoneda(venta.total)}</td><td className="px-4 py-3 text-right"><VentaDetalle venta={venta} /></td></tr>)}{!cargando && ventasAgrupadas.length === 0 && <tr><td colSpan={7} className="px-4 py-10 text-center text-sm text-slate-500">No hay ventas en esta fecha.</td></tr>}</tbody>
               </table>
             </div>
           ) : (
