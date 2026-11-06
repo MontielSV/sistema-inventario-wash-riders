@@ -1,4 +1,4 @@
-import { MetadataRoute } from 'next'
+import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -11,9 +11,14 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: '#000000',
     icons: [
       {
-        src: '/wash-riders.svg',
-        sizes: 'any',
-        type: 'image/svg+xml',
+        src: '/wash-riders-192.png',
+        sizes: '192x192',
+        type: 'image/png',
+      },
+      {
+        src: '/wash-riders-512.png',
+        sizes: '512x512',
+        type: 'image/png',
       },
     ],
   }
