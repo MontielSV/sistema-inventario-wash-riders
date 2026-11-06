@@ -144,16 +144,16 @@ html, body {
 
 .app-theme-dark {
   color-scheme: dark;
-  background-color: #020617;
-  color: #e2e8f0;
+  background-color: #0b1220;
+  color: #e5e7eb;
 }
 
 .app-theme-dark [class~="bg-slate-50"] {
-  background-color: #0f172a !important;
+  background-color: #0b1220 !important;
 }
 
 .app-theme-dark [class~="bg-slate-100"] {
-  background-color: #1e293b !important;
+  background-color: #111c2f !important;
 }
 
 .app-theme-dark [class~="bg-white"] {
@@ -181,9 +181,37 @@ html, body {
   background-color: #064e3b !important;
 }
 
+.app-theme-dark [class~="bg-blue-50/50"],
+.app-theme-dark [class~="bg-blue-50/60"] {
+  background-color: #142b43 !important;
+}
+
+.app-theme-dark [class~="bg-amber-50/60"],
+.app-theme-dark [class~="bg-amber-50"] {
+  background-color: #3b2b13 !important;
+}
+
+.app-theme-dark [class~="bg-rose-50"],
+.app-theme-dark [class~="bg-red-50"] {
+  background-color: #3b1d29 !important;
+}
+
+.app-theme-dark [class~="bg-gray-50"],
+.app-theme-dark [class~="bg-gray-100"] {
+  background-color: #111c2f !important;
+}
+
 .app-theme-dark [class~="border-slate-100"],
 .app-theme-dark [class~="border-slate-200"] {
   border-color: #334155 !important;
+}
+
+.app-theme-dark [class~="border-blue-100"],
+.app-theme-dark [class~="border-blue-200"],
+.app-theme-dark [class~="border-amber-200"],
+.app-theme-dark [class~="border-rose-100"],
+.app-theme-dark [class~="border-red-200"] {
+  border-color: #3b5068 !important;
 }
 
 .app-theme-dark [class~="divide-slate-100"] > :not([hidden]) ~ :not([hidden]) {
@@ -204,17 +232,21 @@ html, body {
 
 .app-theme-dark [class~="text-blue-900"],
 .app-theme-dark [class~="text-blue-800"],
-.app-theme-dark [class~="text-blue-700"] {
+.app-theme-dark [class~="text-blue-700"],
+.app-theme-dark [class~="text-blue-600"] {
   color: #93c5fd !important;
 }
 
 .app-theme-dark [class~="text-amber-800"],
-.app-theme-dark [class~="text-amber-700"] {
+.app-theme-dark [class~="text-amber-700"],
+.app-theme-dark [class~="text-amber-900"] {
   color: #fcd34d !important;
 }
 
 .app-theme-dark [class~="text-red-800"],
-.app-theme-dark [class~="text-rose-700"] {
+.app-theme-dark [class~="text-red-700"],
+.app-theme-dark [class~="text-rose-700"],
+.app-theme-dark [class~="text-rose-800"] {
   color: #fda4af !important;
 }
 
@@ -222,8 +254,40 @@ html, body {
   color: #6ee7b7 !important;
 }
 
+.app-theme-dark [class~="text-blue-50"] {
+  color: #dbeafe !important;
+}
+
+.app-theme-dark [class~="text-white/70"],
+.app-theme-dark [class~="text-white/60"] {
+  color: #cbd5e1 !important;
+}
+
+.app-theme-dark input,
+.app-theme-dark select,
+.app-theme-dark textarea {
+  color-scheme: dark;
+}
+
+.app-theme-dark input::placeholder,
+.app-theme-dark textarea::placeholder {
+  color: #94a3b8;
+  opacity: 1;
+}
+
+.app-theme-dark option {
+  background-color: #172334;
+  color: #e2e8f0;
+}
+
 .app-theme-dark [class~="hover:bg-blue-50"]:hover {
   background-color: #1e3a5f !important;
+}
+
+.app-theme-dark [class~="hover:bg-blue-100"]:hover,
+.app-theme-dark [class~="hover:bg-rose-100"]:hover,
+.app-theme-dark [class~="hover:bg-amber-100"]:hover {
+  background-color: #253b54 !important;
 }
 
 .app-theme-dark [class~="hover:bg-slate-50"]:hover {

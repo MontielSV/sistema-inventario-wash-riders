@@ -31,10 +31,10 @@ export default function Sidebar({ vistaActiva, setVistaActiva, onLogout, tema, o
   ];
 
   return (
-    <aside className={`w-full border-b p-3 text-white print:hidden lg:sticky lg:top-0 lg:flex lg:h-screen lg:min-h-screen lg:w-64 lg:flex-col lg:justify-between lg:border-b-0 lg:border-r lg:p-4 ${tema === 'dark' ? 'border-slate-700 bg-[#081a2b]' : 'border-[#1f5a8a] bg-[#123b60]'}`}>
-      <div className="space-y-3 lg:space-y-6">
+    <aside className={`flex w-full flex-col gap-3 border-b p-3 text-white print:hidden lg:sticky lg:top-0 lg:h-screen lg:min-h-screen lg:w-64 lg:justify-between lg:border-b-0 lg:border-r lg:p-4 ${tema === 'dark' ? 'border-slate-700 bg-[#081a2b]' : 'border-[#1f5a8a] bg-[#123b60]'}`}>
+      <div className="flex flex-wrap items-center justify-between gap-3 lg:block lg:space-y-6">
         {/* Logo / Encabezado */}
-        <div className="px-3 py-2">
+        <div className="min-w-[140px] flex-1 px-3 py-2 lg:flex-none">
           <h2 className="text-xl font-black tracking-tight text-white">WASH RIDERS</h2>
           <p className="text-[10px] uppercase tracking-widest text-blue-100">Sistema de inventario</p>
         </div>
@@ -43,14 +43,14 @@ export default function Sidebar({ vistaActiva, setVistaActiva, onLogout, tema, o
           type="button"
           onClick={onToggleTheme}
           aria-label={`Cambiar a modo ${tema === 'light' ? 'oscuro' : 'claro'}`}
-          className="flex w-full items-center gap-3 rounded-lg border border-white/25 bg-white/10 px-4 py-2.5 text-left text-xs font-bold text-white transition-colors hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-300"
+          className="flex w-auto shrink-0 items-center gap-2 rounded-lg border border-white/25 bg-white/10 px-3 py-2.5 text-left text-xs font-bold text-white transition-colors hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-300 sm:gap-3 sm:px-4 lg:w-full"
         >
           {tema === 'light' ? <MoonIcon aria-hidden="true" className="h-5 w-5 shrink-0 text-yellow-300" /> : <SunIcon aria-hidden="true" className="h-5 w-5 shrink-0 text-yellow-300" />}
           Cambiar a modo {tema === 'light' ? 'oscuro' : 'claro'}
         </button>
 
         {/* Menú de Opciones */}
-        <nav className="flex gap-1 overflow-x-auto lg:flex-col lg:space-y-1" aria-label="Navegación principal">
+        <nav className="flex w-full gap-1 overflow-x-auto pb-1 lg:flex-col lg:space-y-1 lg:pb-0" aria-label="Navegación principal">
           {menuItems.map((item) => {
             const Icono = item.icono;
             const activo = vistaActiva === item.id;
@@ -58,13 +58,15 @@ export default function Sidebar({ vistaActiva, setVistaActiva, onLogout, tema, o
               <button
                 key={item.id}
                 onClick={() => setVistaActiva(item.id)}
-                className={`w-auto shrink-0 flex items-center gap-2 px-3 py-2.5 rounded-lg text-xs font-semibold transition-all lg:w-full lg:gap-3 lg:px-4 lg:py-3 ${
+                className={`flex h-10 w-auto shrink-0 items-center gap-2 rounded-lg px-3 text-xs font-semibold transition-all lg:h-auto lg:w-full lg:gap-3 lg:px-4 lg:py-3 ${
                   activo 
-                    ? 'border-l-4 border-white bg-white font-bold text-[#123b60] shadow-md shadow-black/20'
+                    ? tema === 'dark'
+                      ? 'border-l-4 border-sky-200 bg-sky-200 font-bold text-[#081a2b] shadow-md shadow-black/20'
+                      : 'border-l-4 border-white bg-white font-bold text-[#123b60] shadow-md shadow-black/20'
                     : 'text-blue-50 hover:bg-[#1f5a8a] hover:text-white'
                 }`}
               >
-                <Icono className={`h-5 w-5 shrink-0 ${activo ? 'text-[#123b60]' : item.tono}`} />
+                <Icono className={`h-5 w-5 shrink-0 ${activo ? (tema === 'dark' ? 'text-[#081a2b]' : 'text-[#123b60]') : item.tono}`} />
                 {item.nombre}
               </button>
             );
