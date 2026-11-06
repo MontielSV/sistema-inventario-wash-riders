@@ -193,7 +193,12 @@ export default function Home() {
           {vistaActiva === 'dashboard' && <DashboardView onNavigate={setVistaActiva} />}
           {vistaActiva === 'productos' && <ProductosView />}
           {vistaActiva === 'ventas' && <RegistrarVentaView />}
-          {vistaActiva === 'historial' && <InventarioView />}
+          {(vistaActiva === 'registrar-movimiento' || vistaActiva === 'historial') && (
+            <InventarioView
+              vista={vistaActiva === 'historial' ? 'historial' : 'registrar'}
+              onNavigate={setVistaActiva}
+            />
+          )}
           {vistaActiva === 'reporte-ventas' && <ReportesInventarioView modo="diario" />}
           {vistaActiva === 'pdf' && <ReportesInventarioView modo="mensual" />}
         </div>

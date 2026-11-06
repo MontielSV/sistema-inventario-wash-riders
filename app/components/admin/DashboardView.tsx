@@ -20,6 +20,7 @@ interface Producto {
 
 interface Movimiento {
   id: number;
+  producto_id: number;
   nombre_producto?: string;
   codigo_producto?: string;
   transaccion_id?: string | null;
@@ -80,19 +81,20 @@ export default function DashboardView({ onNavigate }: DashboardViewProps) {
     (producto) => Number(producto.stock_actual) <= Number(producto.stock_minimo)
   );
   const fechaHoy = fechaLocalClave(new Date());
-  const ventasHoy = movimientos.filter(
-    (movimiento) => movimiento.tipo === 'SALIDA' &&
-      movimiento.motivo_tipo === 'VENTA' &&
-      fechaLocalClave(new Date(movimiento.fecha)) === fechaHoy
+  const movimientosHoy = movimientos.filter(
+    (movimiento) => fechaLocalClave(new Date(movimiento.fecha)) === fechaHoy
+  );
+  const ventasHoy = movimientosHoy.filter(
+    (movimiento) => movimiento.tipo === 'SALIDA' && movimiento.motivo_tipo === 'VENTA'
   );
   const ingresosHoy = ventasHoy.reduce(
     (total, movimiento) => total + Number(movimiento.cantidad) * Number(movimiento.precio_unitario),
     0
   );
-  const productosVendidosHoy = ventasHoy.reduce((total, movimiento) => total + Number(movimiento.cantidad), 0);
+  const unidadesMovidasHoy = movimientosHoy.reduce((total, movimiento) => total + Number(movimiento.cantidad), 0);
   const conteoPorProducto = new Map<string, { nombre: string; codigo: string; cantidad: number }>();
-  ventasHoy.forEach((movimiento) => {
-    const codigo = movimiento.codigo_producto || String(movimiento.id);
+  movimientosHoy.forEach((movimiento) => {
+    const codigo = movimiento.codigo_producto || String(movimiento.producto_id);
     const actual = conteoPorProducto.get(codigo);
     if (actual) {
       actual.cantidad += Number(movimiento.cantidad);
@@ -104,10 +106,10 @@ export default function DashboardView({ onNavigate }: DashboardViewProps) {
       });
     }
   });
-  const productosMasVendidos = Array.from(conteoPorProducto.values())
+  const productosMasMovidos = Array.from(conteoPorProducto.values())
     .sort((primero, segundo) => segundo.cantidad - primero.cantidad)
     .slice(0, 5);
-  const productoMasVendido = productosMasVendidos[0];
+  const productoMasMovido = productosMasMovidos[0];
   const ahora = new Date();
   const mesActual = fechaHoy.slice(0, 7);
   const diasEnMes = ahora.getDate();
@@ -180,11 +182,11 @@ export default function DashboardView({ onNavigate }: DashboardViewProps) {
           </article>
           <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between text-slate-500">
-              <span className="text-xs font-bold uppercase">Más vendido hoy</span>
+              <span className="text-xs font-bold uppercase">Producto más movido hoy</span>
               <ChartBarIcon className="h-5 w-5 text-blue-700" />
             </div>
-            <p className="mt-3 truncate text-lg font-black text-slate-900">{cargando ? '...' : productoMasVendido?.nombre || 'Sin ventas'}</p>
-            <p className="mt-1 truncate text-xs text-slate-500">{productoMasVendido ? `${productoMasVendido.codigo} · ${productoMasVendido.cantidad} unidades` : 'Sin ventas registradas'}</p>
+            <p className="mt-3 truncate text-lg font-black text-slate-900">{cargando ? '...' : productoMasMovido?.nombre || 'Sin movimientos'}</p>
+            <p className="mt-1 truncate text-xs text-slate-500">{productoMasMovido ? `${productoMasMovido.codigo} · ${productoMasMovido.cantidad} unidades` : 'Sin movimientos registrados'}</p>
           </article>
           <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between text-slate-500">
@@ -202,10 +204,10 @@ export default function DashboardView({ onNavigate }: DashboardViewProps) {
           </article>
           <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between text-slate-500">
-              <span className="text-xs font-bold uppercase">Unidades vendidas hoy</span>
+              <span className="text-xs font-bold uppercase">Unidades movidas hoy</span>
               <ChartBarIcon className="h-5 w-5 text-blue-700" />
             </div>
-            <p className="mt-3 text-3xl font-black text-blue-800">{cargando ? '...' : productosVendidosHoy}</p>
+            <p className="mt-3 text-3xl font-black text-blue-800">{cargando ? '...' : unidadesMovidasHoy}</p>
           </article>
           <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between text-slate-500">

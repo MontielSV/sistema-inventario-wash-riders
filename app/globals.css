@@ -36,12 +36,12 @@ html, body {
 }
 
 .inventory-light[class~="bg-[#030303]"] {
-  background-color: #f3f6fa !important;
+  background-color: #edf5fb !important;
 }
 
 .inventory-light [class~="bg-[#0f0f0f]"],
 .inventory-light [class~="bg-[#0f0f0f]/95"] {
-  background-color: #fff !important;
+  background-color: #f8fbff !important;
 }
 
 .inventory-light [class~="bg-black/60"],
@@ -80,7 +80,7 @@ html, body {
 
 .inventory-light [class~="border-white/10"],
 .inventory-light [class~="border-white/5"] {
-  border-color: #dbe4ed !important;
+  border-color: #bfdbfe !important;
 }
 
 .inventory-light [class~="divide-white/5"] > :not([hidden]) ~ :not([hidden]) {
@@ -146,6 +146,11 @@ html, body {
   color-scheme: dark;
   background-color: #0b1220;
   color: #e5e7eb;
+}
+
+.app-shell:not(.app-theme-dark) [class~="border-slate-200"][class~="bg-white"] {
+  border-color: #bfdbfe;
+  background-color: #f8fbff;
 }
 
 .app-theme-dark [class~="bg-slate-50"] {

@@ -32,6 +32,11 @@ interface Movimiento {
   codigo_seguimiento?: string | null;
 }
 
+interface InventarioViewProps {
+  vista: 'historial' | 'registrar';
+  onNavigate: (vista: string) => void;
+}
+
 const MOTIVOS: Record<string, string> = {
   COMPRA: 'Compra',
   VENTA: 'Venta',
@@ -54,7 +59,7 @@ const toLocalDateTimeInput = (value: string) => {
   return date.toISOString().slice(0, 16);
 };
 
-export default function InventarioView() {
+export default function InventarioView({ vista, onNavigate }: InventarioViewProps) {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -97,6 +102,12 @@ export default function InventarioView() {
   useEffect(() => {
     cargarDatos();
   }, []);
+
+  useEffect(() => {
+    if (vista === 'registrar' && movimientoEditando) {
+      document.getElementById('form-movimiento')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [vista, movimientoEditando]);
 
   const handleRegistrarMovimiento = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -179,19 +190,22 @@ export default function InventarioView() {
 
   return (
     <div className="inventory-light min-h-screen bg-[#030303] p-4 font-sans text-white md:p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
+      <div className={`mx-auto space-y-8 ${vista === 'historial' ? 'max-w-[1600px]' : 'max-w-7xl'}`}>
         
         {/* Cabecera */}
         <header className="pb-6 border-b border-white/10">
           <h1 className="text-3xl md:text-4xl font-black italic tracking-tighter text-white flex items-center gap-3">
-            <ArrowsRightLeftIcon className="w-8 h-8 text-[#E50914]" /> Control de Movimientos de Inventario
+            <ArrowsRightLeftIcon className="w-8 h-8 text-[#E50914]" />
+            {vista === 'historial' ? 'Historial de movimientos' : 'Registrar movimiento'}
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Registro manual de entradas (compras/abasto) y salidas (bajas/uso)
+            {vista === 'historial'
+              ? 'Consulta las entradas y salidas registradas en el inventario.'
+              : 'Registra entradas y salidas manuales del inventario.'}
           </p>
         </header>
 
-        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4" aria-label="Resumen de inventario">
+        {vista === 'registrar' && <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4" aria-label="Resumen de inventario">
           <div className="bg-[#0f0f0f] border border-white/10 rounded-xl p-5">
             <p className="text-xs font-bold uppercase text-slate-400">Productos registrados</p>
             <p className="mt-2 text-2xl font-black">{productos.length}</p>
@@ -208,12 +222,12 @@ export default function InventarioView() {
             <p className="text-xs font-bold uppercase text-slate-400">Unidades descontadas</p>
             <p className="mt-2 text-2xl font-black text-red-400">{totalSalidas}</p>
           </div>
-        </section>
+        </section>}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className={vista === 'registrar' ? 'mx-auto max-w-3xl' : ''}>
           
           {/* Formulario de Registro */}
-          <div id="form-movimiento" className="bg-[#0f0f0f]/95 p-6 rounded-[2rem] border border-white/10 shadow-2xl h-fit space-y-6">
+          <div id="form-movimiento" className={`${vista === 'historial' ? 'hidden' : ''} bg-[#0f0f0f]/95 p-6 rounded-[2rem] border border-white/10 shadow-2xl h-fit space-y-6`}>
             <div className="flex items-center justify-between border-b border-white/5 pb-4">
               <h2 className="text-xl font-bold text-white">{movimientoEditando ? 'Editar Movimiento' : 'Registrar Movimiento'}</h2>
               {movimientoEditando && (
@@ -331,7 +345,7 @@ export default function InventarioView() {
           </div>
 
           {/* Historial de Movimientos */}
-          <div className="lg:col-span-2 bg-[#0f0f0f]/95 rounded-[2rem] border border-white/10 overflow-hidden shadow-2xl p-6 space-y-4">
+          <div className={`${vista === 'registrar' ? 'hidden' : ''} bg-[#0f0f0f]/95 rounded-[2rem] border border-white/10 overflow-hidden shadow-2xl p-6 space-y-4`}>
             <div className="flex flex-col gap-3 border-b border-white/5 pb-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-xl font-bold text-white">Historial</h2>
@@ -461,7 +475,7 @@ export default function InventarioView() {
                                   setCantidad(Number(principal.cantidad));
                                   setMotivo(principal.motivo || '');
                                   setFecha(toLocalDateTimeInput(principal.fecha));
-                                  document.getElementById('form-movimiento')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                  onNavigate('registrar-movimiento');
                                 }}
                                 className="rounded-md border border-white/10 p-2 text-slate-300 transition-colors hover:border-[#E50914]/50 hover:text-white"
                               >
