@@ -129,6 +129,16 @@ export default function Home() {
           <p className="text-[10px] text-center text-slate-600 uppercase tracking-wider">
             Acceso restringido únicamente para personal autorizado
           </p>
+          {process.env.NEXT_PUBLIC_DEVELOPER_EMAIL ? (
+            <a
+              href={`mailto:${process.env.NEXT_PUBLIC_DEVELOPER_EMAIL}?subject=Soporte%20Wash%20Riders`}
+              className="block text-center text-xs font-semibold text-slate-400 underline decoration-white/20 underline-offset-4 transition-colors hover:text-white"
+            >
+              Contactar al desarrollador
+            </a>
+          ) : (
+            <p className="text-center text-xs font-semibold text-slate-400">Contactar al desarrollador</p>
+          )}
         </div>
       </div>
     );

@@ -6,6 +6,8 @@ import { ensureInventoryTables } from '@/lib/inventory-db';
 
 export const runtime = 'nodejs';
 
+const MOTIVOS_VALIDOS = new Set(['COMPRA', 'VENTA', 'USO_INTERNO', 'DANO', 'DONACION', 'AJUSTE', 'OTRO']);
+
 function movementDelta(tipo: 'ENTRADA' | 'SALIDA', cantidad: number) {
   return tipo === 'ENTRADA' ? cantidad : -cantidad;
 }
@@ -18,8 +20,8 @@ export async function GET(request: Request) {
   try {
     await ensureInventoryTables();
     const result = await pool.query(`
-      SELECT m.id, m.producto_id, p.nombre AS nombre_producto, m.tipo,
-             m.cantidad, m.motivo, m.fecha
+            SELECT m.id, m.producto_id, p.nombre AS nombre_producto, p.codigo AS codigo_producto,
+              m.tipo, m.cantidad, m.motivo_tipo, m.motivo, m.precio_unitario, m.fecha
       FROM movimientos m
       LEFT JOIN productos p ON p.id = m.producto_id
       ORDER BY m.fecha DESC, m.id DESC
@@ -42,6 +44,7 @@ export async function POST(request: Request) {
     const productoId = Number(body.producto_id);
     const cantidad = Number(body.cantidad);
     const tipo = body.tipo;
+    const motivoTipo = typeof body.motivo_tipo === 'string' ? body.motivo_tipo : (tipo === 'ENTRADA' ? 'COMPRA' : 'OTRO');
     const motivo = typeof body.motivo === 'string' ? body.motivo.trim() : '';
     const fecha = body.fecha ? new Date(body.fecha) : new Date();
 
@@ -49,6 +52,8 @@ export async function POST(request: Request) {
       !Number.isInteger(productoId) || productoId < 1 ||
       !Number.isInteger(cantidad) || cantidad < 1 ||
       (tipo !== 'ENTRADA' && tipo !== 'SALIDA') ||
+      !MOTIVOS_VALIDOS.has(motivoTipo) ||
+      (tipo === 'ENTRADA' && motivoTipo === 'VENTA') ||
       Number.isNaN(fecha.getTime())
     ) {
       return NextResponse.json({ error: 'Los datos del movimiento no son válidos' }, { status: 400 });
@@ -58,7 +63,7 @@ export async function POST(request: Request) {
     client = await pool.connect();
     await client.query('BEGIN');
     const producto = await client.query(
-      'SELECT id, stock_actual FROM productos WHERE id = $1 FOR UPDATE',
+      'SELECT id, stock_actual, precio FROM productos WHERE id = $1 FOR UPDATE',
       [productoId]
     );
 
@@ -75,10 +80,10 @@ export async function POST(request: Request) {
 
     await client.query('UPDATE productos SET stock_actual = $1 WHERE id = $2', [nuevoStock, productoId]);
     const result = await client.query(
-      `INSERT INTO movimientos (producto_id, tipo, cantidad, motivo, fecha)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO movimientos (producto_id, tipo, cantidad, motivo_tipo, motivo, precio_unitario, fecha)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
-      [productoId, tipo, cantidad, motivo, fecha]
+      [productoId, tipo, cantidad, motivoTipo, motivo, producto.rows[0].precio, fecha]
     );
     await client.query('COMMIT');
     return NextResponse.json(result.rows[0], { status: 201 });
@@ -103,13 +108,16 @@ export async function PUT(request: Request) {
     const productoId = Number(body.producto_id);
     const cantidad = Number(body.cantidad);
     const tipo = body.tipo;
+    const motivoTipo = body.motivo_tipo;
     const motivo = typeof body.motivo === 'string' ? body.motivo.trim() : '';
     const fecha = new Date(body.fecha);
 
     if (
       !Number.isInteger(id) || id < 1 || !Number.isInteger(productoId) || productoId < 1 ||
       !Number.isInteger(cantidad) || cantidad < 1 ||
-      (tipo !== 'ENTRADA' && tipo !== 'SALIDA') || Number.isNaN(fecha.getTime())
+      (tipo !== 'ENTRADA' && tipo !== 'SALIDA') ||
+      typeof motivoTipo !== 'string' || !MOTIVOS_VALIDOS.has(motivoTipo) ||
+      (tipo === 'ENTRADA' && motivoTipo === 'VENTA') || Number.isNaN(fecha.getTime())
     ) {
       return NextResponse.json({ error: 'Los datos del movimiento no son válidos' }, { status: 400 });
     }
@@ -126,7 +134,7 @@ export async function PUT(request: Request) {
     const old = existing.rows[0];
     const productIds = [...new Set([Number(old.producto_id), productoId])].sort((a, b) => a - b);
     const products = await client.query(
-      'SELECT id, stock_actual FROM productos WHERE id = ANY($1::int[]) ORDER BY id FOR UPDATE',
+      'SELECT id, stock_actual, precio FROM productos WHERE id = ANY($1::int[]) ORDER BY id FOR UPDATE',
       [productIds]
     );
     if (products.rowCount !== productIds.length) {
@@ -147,16 +155,14 @@ export async function PUT(request: Request) {
     }
 
     await client.query('UPDATE productos SET stock_actual = $1 WHERE id = $2', [restoredOldStock, oldProductId]);
-    if (productoId !== oldProductId) {
-      await client.query('UPDATE productos SET stock_actual = $1 WHERE id = $2', [nextStock, productoId]);
-    } else {
-      await client.query('UPDATE productos SET stock_actual = $1 WHERE id = $2', [nextStock, productoId]);
-    }
+    await client.query('UPDATE productos SET stock_actual = $1 WHERE id = $2', [nextStock, productoId]);
+    const productPrice = products.rows.find((product) => Number(product.id) === productoId)?.precio;
     const result = await client.query(
       `UPDATE movimientos
-       SET producto_id = $1, tipo = $2, cantidad = $3, motivo = $4, fecha = $5
-       WHERE id = $6 RETURNING *`,
-      [productoId, tipo, cantidad, motivo, fecha, id]
+       SET producto_id = $1, tipo = $2, cantidad = $3, motivo_tipo = $4,
+           motivo = $5, precio_unitario = $6, fecha = $7
+       WHERE id = $8 RETURNING *`,
+      [productoId, tipo, cantidad, motivoTipo, motivo, productPrice, fecha, id]
     );
     await client.query('COMMIT');
     return NextResponse.json(result.rows[0]);

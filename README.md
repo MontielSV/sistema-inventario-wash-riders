@@ -8,6 +8,7 @@ Define estas variables en el entorno local y en Vercel:
 
 - `DATABASE_URL`: cadena de conexión PostgreSQL de Neon.
 - `AUTH_SECRET`: secreto aleatorio para firmar las sesiones. Si no se define, se usa `DATABASE_URL` como clave de respaldo.
+- `NEXT_PUBLIC_DEVELOPER_EMAIL`: opcional. Dirección que abre el enlace "Contactar al desarrollador" del login.
 - `ADMIN_BOOTSTRAP_PASSWORD`: opcional. Si no existe el usuario `admin`, esta contraseña permite crear la cuenta inicial. En desarrollo se usa `admin123` por defecto; en producción debe configurarse de forma explícita y eliminarse después del primer aprovisionamiento.
 
 Las tablas `productos` y `movimientos` se crean automáticamente al consultar el inventario. La tabla `usuarios` se crea en el primer intento de inicio de sesión. Las contraseñas nuevas usan `scrypt`; las contraseñas existentes en texto plano se convierten al formato hash después de un inicio de sesión válido.

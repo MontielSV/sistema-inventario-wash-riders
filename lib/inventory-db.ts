@@ -20,7 +20,11 @@ export async function ensureInventoryTables() {
       tipo TEXT NOT NULL CHECK (tipo IN ('ENTRADA', 'SALIDA')),
       cantidad INTEGER NOT NULL CHECK (cantidad > 0),
       motivo TEXT NOT NULL DEFAULT '',
+      motivo_tipo TEXT NOT NULL DEFAULT 'OTRO',
+      precio_unitario NUMERIC(12, 2) NOT NULL DEFAULT 0 CHECK (precio_unitario >= 0),
       fecha TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
   `);
+  await pool.query("ALTER TABLE movimientos ADD COLUMN IF NOT EXISTS motivo_tipo TEXT NOT NULL DEFAULT 'OTRO'");
+  await pool.query('ALTER TABLE movimientos ADD COLUMN IF NOT EXISTS precio_unitario NUMERIC(12, 2) NOT NULL DEFAULT 0');
 }

@@ -17,11 +17,30 @@ interface Movimiento {
   id: number;
   producto_id: number;
   nombre_producto?: string;
+  codigo_producto?: string;
   tipo: 'ENTRADA' | 'SALIDA';
   cantidad: number;
   fecha: string;
+  motivo_tipo: string;
   motivo: string;
+  precio_unitario: number;
 }
+
+const MOTIVOS: Record<string, string> = {
+  COMPRA: 'Compra',
+  VENTA: 'Venta',
+  USO_INTERNO: 'Uso interno',
+  DANO: 'Daño',
+  DONACION: 'Donación',
+  AJUSTE: 'Ajuste',
+  OTRO: 'Otro',
+};
+
+const getLocalDateTimeInput = () => {
+  const date = new Date();
+  date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+  return date.toISOString().slice(0, 16);
+};
 
 export default function InventarioView() {
   const [productos, setProductos] = useState<Producto[]>([]);
@@ -31,9 +50,10 @@ export default function InventarioView() {
   // Formulario
   const [productoId, setProductoId] = useState<number | ''>('');
   const [tipo, setTipo] = useState<'ENTRADA' | 'SALIDA'>('ENTRADA');
+  const [motivoTipo, setMotivoTipo] = useState('COMPRA');
   const [cantidad, setCantidad] = useState<number>(1);
   const [motivo, setMotivo] = useState('');
-  const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10));
+  const [fecha, setFecha] = useState(getLocalDateTimeInput);
   const [procesando, setProcesando] = useState(false);
 
   const cargarDatos = async () => {
@@ -78,9 +98,10 @@ export default function InventarioView() {
         body: JSON.stringify({
           producto_id: Number(productoId),
           tipo,
+          motivo_tipo: motivoTipo,
           cantidad: Number(cantidad),
           motivo,
-          fecha
+          fecha: new Date(fecha).toISOString()
         })
       });
 
@@ -90,9 +111,11 @@ export default function InventarioView() {
       }
 
       setProductoId('');
+      setTipo('ENTRADA');
+      setMotivoTipo('COMPRA');
       setCantidad(1);
       setMotivo('');
-      setFecha(new Date().toISOString().slice(0, 10));
+      setFecha(getLocalDateTimeInput());
       cargarDatos();
     } catch (err: any) {
       alert(err.message || 'Error en la operación');
@@ -166,7 +189,7 @@ export default function InventarioView() {
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
-                    onClick={() => setTipo('ENTRADA')}
+                    onClick={() => { setTipo('ENTRADA'); setMotivoTipo('COMPRA'); }}
                     className={`py-2.5 rounded-xl font-bold text-xs uppercase flex items-center justify-center gap-2 border transition-all ${
                       tipo === 'ENTRADA'
                         ? 'bg-emerald-950/80 border-emerald-500 text-emerald-400 shadow-lg'
@@ -177,7 +200,7 @@ export default function InventarioView() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setTipo('SALIDA')}
+                    onClick={() => { setTipo('SALIDA'); setMotivoTipo('VENTA'); }}
                     className={`py-2.5 rounded-xl font-bold text-xs uppercase flex items-center justify-center gap-2 border transition-all ${
                       tipo === 'SALIDA'
                         ? 'bg-red-950/80 border-red-500 text-red-400 shadow-lg'
@@ -187,6 +210,19 @@ export default function InventarioView() {
                     <ArrowUpCircleIcon className="w-4 h-4" /> Salida
                   </button>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Motivo del movimiento</label>
+                <select
+                  required
+                  value={motivoTipo}
+                  onChange={(event) => setMotivoTipo(event.target.value)}
+                  className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-[#E50914]"
+                >
+                  {(tipo === 'ENTRADA' ? ['COMPRA', 'AJUSTE', 'OTRO'] : ['VENTA', 'USO_INTERNO', 'DANO', 'DONACION', 'AJUSTE', 'OTRO'])
+                    .map((opcion) => <option key={opcion} value={opcion}>{MOTIVOS[opcion]}</option>)}
+                </select>
               </div>
 
               <div>
@@ -204,7 +240,7 @@ export default function InventarioView() {
               <div>
                 <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Fecha</label>
                 <input
-                  type="date"
+                  type="datetime-local"
                   required
                   value={fecha}
                   onChange={(e) => setFecha(e.target.value)}
@@ -252,7 +288,8 @@ export default function InventarioView() {
                     <tr className="border-b border-white/10 text-xs text-slate-400 uppercase tracking-wider bg-black/40">
                       <th className="p-3 pl-4">Fecha</th>
                       <th className="p-3">Producto</th>
-                      <th className="p-3">Tipo</th>
+                      <th className="p-3">Código</th>
+                      <th className="p-3">Tipo / Motivo</th>
                       <th className="p-3">Cantidad</th>
                       <th className="p-3 pr-4">Nota</th>
                     </tr>
@@ -261,17 +298,18 @@ export default function InventarioView() {
                     {movimientos.map((m) => (
                       <tr key={m.id} className="hover:bg-white/5 transition-all">
                         <td className="p-3 pl-4 font-mono text-xs text-slate-400">
-                          {new Date(m.fecha).toLocaleDateString('es-CO')}
+                          {new Date(m.fecha).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}
                         </td>
                         <td className="p-3 font-bold text-white">{m.nombre_producto || `Prod #${m.producto_id}`}</td>
+                        <td className="p-3 font-mono text-xs text-slate-400">{m.codigo_producto || '-'}</td>
                         <td className="p-3">
                           {m.tipo === 'ENTRADA' ? (
                             <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-400">
-                              <ArrowDownCircleIcon className="w-4 h-4" /> ENTRADA
+                              <ArrowDownCircleIcon className="w-4 h-4" /> {MOTIVOS[m.motivo_tipo] || 'Entrada'}
                             </span>
                           ) : (
                             <span className="inline-flex items-center gap-1 text-xs font-bold text-red-400">
-                              <ArrowUpCircleIcon className="w-4 h-4" /> SALIDA
+                              <ArrowUpCircleIcon className="w-4 h-4" /> {MOTIVOS[m.motivo_tipo] || 'Salida'}
                             </span>
                           )}
                         </td>
