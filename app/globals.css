@@ -330,7 +330,7 @@ html, body {
 }
 
 .app-theme-dark .inventory-light [class~="text-[#E50914]"] {
-  color: #e50914 !important;
+  color: #ff7180 !important;
 }
 
 .app-theme-dark .inventory-light [class~="border-[#E50914]"],
@@ -400,4 +400,120 @@ html, body {
 
 .app-theme-dark .inventory-light [class~="hover:text-white"]:hover {
   color: #fff !important;
+}
+
+.app-theme-dark [class~="bg-[#030303]"],
+.app-theme-dark [class~="bg-[#081a2b]"],
+.app-theme-dark [class~="bg-[#0a0a0a]"],
+.app-theme-dark [class~="bg-[#0f0f0f]"],
+.app-theme-dark [class~="bg-[#0f0f0f]/80"],
+.app-theme-dark [class~="bg-[#0f0f0f]/90"],
+.app-theme-dark [class~="bg-[#0f0f0f]/95"],
+.app-theme-dark [class~="bg-[#111]"],
+.app-theme-dark [class~="bg-[#181818]"],
+.app-theme-dark [class~="bg-[#1A1A1A]"],
+.app-theme-dark [class~="bg-[#222]"],
+.app-theme-dark [class~="bg-black"] {
+  background-color: #172334 !important;
+}
+
+.app-theme-dark .inventory-light[class~="bg-[#030303]"] {
+  background-color: #0b1220 !important;
+}
+
+.app-theme-dark .inventory-light [class~="bg-[#0f0f0f]"],
+.app-theme-dark .inventory-light [class~="bg-[#0f0f0f]/80"],
+.app-theme-dark .inventory-light [class~="bg-[#0f0f0f]/90"],
+.app-theme-dark .inventory-light [class~="bg-[#0f0f0f]/95"] {
+  background-color: #172334 !important;
+}
+
+.app-theme-dark [class~="bg-zinc-800"],
+.app-theme-dark [class~="bg-zinc-900"],
+.app-theme-dark [class~="bg-zinc-900/90"],
+.app-theme-dark [class~="bg-zinc-950"] {
+  background-color: #172334 !important;
+}
+
+.app-theme-dark [class~="bg-slate-50"],
+.app-theme-dark [class~="bg-gray-50"],
+.app-theme-dark [class~="bg-gray-100"] {
+  background-color: #0b1220 !important;
+}
+
+.app-theme-dark [class~="bg-white"],
+.app-theme-dark [class~="bg-slate-100"],
+.app-theme-dark [class~="bg-blue-50"],
+.app-theme-dark [class~="bg-blue-50/50"],
+.app-theme-dark [class~="bg-blue-50/60"],
+.app-theme-dark [class~="bg-blue-100"],
+.app-theme-dark [class~="bg-amber-50"],
+.app-theme-dark [class~="bg-amber-50/60"] {
+  background-color: #172334 !important;
+}
+
+.app-theme-dark [class~="bg-red-50"],
+.app-theme-dark [class~="bg-rose-50"] {
+  background-color: #3b1d29 !important;
+}
+
+.app-theme-dark [class~="bg-emerald-50"] {
+  background-color: #12352f !important;
+}
+
+.app-theme-dark [class~="text-[#E50914]"] {
+  color: #ff7180 !important;
+}
+
+.app-theme-dark [class~="text-gray-900"],
+.app-theme-dark [class~="text-gray-800"],
+.app-theme-dark [class~="text-gray-700"],
+.app-theme-dark [class~="text-zinc-900"],
+.app-theme-dark [class~="text-zinc-800"],
+.app-theme-dark [class~="text-zinc-700"] {
+  color: #e2e8f0 !important;
+}
+
+.app-theme-dark [class~="text-gray-600"],
+.app-theme-dark [class~="text-gray-500"],
+.app-theme-dark [class~="text-zinc-600"],
+.app-theme-dark [class~="text-zinc-500"] {
+  color: #a7b4c5 !important;
+}
+
+.app-theme-dark [class~="text-red-400"],
+.app-theme-dark [class~="text-rose-400"] {
+  color: #fda4af !important;
+}
+
+.app-theme-dark [class~="text-amber-400"],
+.app-theme-dark [class~="text-yellow-500"] {
+  color: #fcd34d !important;
+}
+
+.app-theme-dark [class~="text-emerald-400"],
+.app-theme-dark [class~="text-green-400"] {
+  color: #6ee7b7 !important;
+}
+
+.app-theme-dark [class~="border-white/5"],
+.app-theme-dark [class~="border-white/10"],
+.app-theme-dark [class~="border-slate-100"],
+.app-theme-dark [class~="border-slate-200"],
+.app-theme-dark [class~="border-blue-100"],
+.app-theme-dark [class~="border-blue-200"],
+.app-theme-dark [class~="border-amber-200"],
+.app-theme-dark [class~="border-rose-100"],
+.app-theme-dark [class~="border-red-200"] {
+  border-color: #334155 !important;
+}
+
+.app-theme-dark [class~="hover:bg-white/5"]:hover,
+.app-theme-dark [class~="hover:bg-white/[0.02]"]:hover,
+.app-theme-dark [class~="hover:bg-blue-50"]:hover,
+.app-theme-dark [class~="hover:bg-blue-100"]:hover,
+.app-theme-dark [class~="hover:bg-slate-50"]:hover,
+.app-theme-dark [class~="hover:bg-rose-100"]:hover,
+.app-theme-dark [class~="hover:bg-amber-100"]:hover {
+  background-color: #253b54 !important;
 }
