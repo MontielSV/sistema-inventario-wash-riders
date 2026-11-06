@@ -56,10 +56,11 @@ const mesActual = () => hoy().slice(0, 7);
 const formatoMoneda = (valor: number) => `$${valor.toLocaleString('es-CO')} COP`;
 const formatoFecha = (fecha: string) => new Date(fecha).toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' });
 const esVenta = (movimiento: Movimiento) => movimiento.tipo === 'SALIDA' && movimiento.motivo_tipo === 'VENTA';
+const esCompra = (movimiento: Movimiento) => movimiento.tipo === 'ENTRADA' && movimiento.motivo_tipo === 'COMPRA';
 
-function agruparVentas(movimientos: Movimiento[]): VentaAgrupada[] {
+function agruparMovimientos(movimientos: Movimiento[], incluir: (movimiento: Movimiento) => boolean, motivoPredeterminado: string): VentaAgrupada[] {
   const grupos = new Map<string, Movimiento[]>();
-  movimientos.filter(esVenta).forEach((movimiento) => {
+  movimientos.filter(incluir).forEach((movimiento) => {
     const clave = movimiento.transaccion_id || movimiento.codigo_seguimiento || `movimiento-${movimiento.id}`;
     const grupo = grupos.get(clave) || [];
     grupo.push(movimiento);
@@ -70,21 +71,21 @@ function agruparVentas(movimientos: Movimiento[]): VentaAgrupada[] {
     clave,
     codigo: lineas[0].codigo_seguimiento || `WR-${lineas[0].id}`,
     fecha: lineas[0].fecha,
-    motivo: lineas[0].motivo || 'Venta',
+    motivo: lineas[0].motivo || motivoPredeterminado,
     movimientos: lineas,
     unidades: lineas.reduce((total, linea) => total + Number(linea.cantidad), 0),
     total: lineas.reduce((total, linea) => total + Number(linea.cantidad) * Number(linea.precio_unitario), 0),
   })).sort((primera, segunda) => segunda.fecha.localeCompare(primera.fecha));
 }
 
-function VentaDetalle({ venta }: { venta: VentaAgrupada }) {
+function OperacionDetalle({ venta, etiqueta }: { venta: VentaAgrupada; etiqueta: string }) {
   return (
     <details className="group">
-      <summary aria-label={`Ver detalle de la venta ${venta.codigo}`} title="Ver productos de la venta" className="inline-flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-md border border-blue-100 text-blue-800 hover:bg-blue-50">
+      <summary aria-label={`Ver detalle de ${etiqueta.toLocaleLowerCase()} ${venta.codigo}`} title="Ver productos de la operación" className="inline-flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-md border border-blue-100 text-blue-800 hover:bg-blue-50">
         <MagnifyingGlassIcon className="h-4 w-4" />
       </summary>
       <div className="mt-2 min-w-64 rounded-lg border border-slate-200 bg-white p-3 shadow-lg">
-        <p className="mb-2 text-xs font-bold text-slate-700">Productos de la venta</p>
+        <p className="mb-2 text-xs font-bold text-slate-700">Productos de {etiqueta.toLocaleLowerCase()}</p>
         <ul className="space-y-2">
           {venta.movimientos.map((movimiento) => (
             <li key={movimiento.id} className="flex justify-between gap-4 text-xs">
@@ -130,10 +131,24 @@ export default function ReportesInventarioView({ modo }: ReportesInventarioViewP
     const claveFecha = fechaLocal(movimiento.fecha);
     return modo === 'diario' ? claveFecha === fecha : claveFecha.startsWith(mes);
   });
-  const ventasAgrupadas = agruparVentas(ventasPeriodo);
+  const ventasAgrupadas = agruparMovimientos(movimientos, esVenta, 'Venta')
+    .filter((venta) => modo === 'diario'
+      ? fechaLocal(venta.fecha) === fecha
+      : fechaLocal(venta.fecha).startsWith(mes));
   const totalPeriodo = ventasAgrupadas.reduce((total, venta) => total + venta.total, 0);
   const unidadesPeriodo = ventasAgrupadas.reduce((total, venta) => total + venta.unidades, 0);
   const diasConVentas = new Set(ventasAgrupadas.map((venta) => fechaLocal(venta.fecha))).size;
+  const comprasPeriodo = movimientos.filter((movimiento) => {
+    if (!esCompra(movimiento)) return false;
+    const claveFecha = fechaLocal(movimiento.fecha);
+    return modo === 'diario' ? claveFecha === fecha : claveFecha.startsWith(mes);
+  });
+  const comprasAgrupadas = agruparMovimientos(comprasPeriodo, esCompra, 'Compra');
+  const unidadesCompradas = comprasAgrupadas.reduce((total, compra) => total + compra.unidades, 0);
+  const operacionesDiarias = [
+    ...ventasAgrupadas.map((operacion) => ({ ...operacion, tipoOperacion: 'Venta' as const })),
+    ...comprasAgrupadas.map((operacion) => ({ ...operacion, tipoOperacion: 'Compra' as const })),
+  ].sort((primera, segunda) => segunda.fecha.localeCompare(primera.fecha));
 
   const productosVendidos = new Map<string, { codigo: string; nombre: string; unidades: number }>();
   productos.forEach((producto) => {
@@ -247,6 +262,7 @@ export default function ReportesInventarioView({ modo }: ReportesInventarioViewP
           <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"><p className="text-xs font-bold uppercase text-slate-500">Total vendido</p><p className="mt-2 text-2xl font-black text-blue-900">{formatoMoneda(totalPeriodo)}</p><p className="mt-1 text-xs capitalize text-slate-500">{modo === 'diario' ? new Date(`${fecha}T12:00:00`).toLocaleDateString('es-CO', { dateStyle: 'long' }) : new Date(`${mes}-01T12:00:00`).toLocaleDateString('es-CO', { month: 'long', year: 'numeric' })}</p></article>
           <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"><p className="text-xs font-bold uppercase text-slate-500">Ventas registradas</p><p className="mt-2 text-2xl font-black">{ventasAgrupadas.length}</p><p className="mt-1 text-xs text-slate-500">Transacciones del periodo</p></article>
           <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"><p className="text-xs font-bold uppercase text-slate-500">Unidades vendidas</p><p className="mt-2 text-2xl font-black">{unidadesPeriodo}</p><p className="mt-1 text-xs text-slate-500">En {ventasAgrupadas.length} operaciones</p></article>
+          {modo === 'diario' && <article className="rounded-lg border border-blue-200 bg-blue-50/50 p-5"><p className="text-xs font-bold uppercase text-blue-800">Compras registradas</p><p className="mt-2 text-2xl font-black text-blue-950">{comprasAgrupadas.length}</p><p className="mt-1 text-xs text-blue-800">{unidadesCompradas} unidades ingresadas</p></article>}
           {modo === 'mensual' && <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"><p className="text-xs font-bold uppercase text-slate-500">Días con actividad</p><p className="mt-2 text-2xl font-black">{diasConVentas}</p><p className="mt-1 text-xs text-slate-500">Días con al menos una venta</p></article>}
           {modo === 'mensual' && <article className="rounded-lg border border-amber-200 bg-amber-50/60 p-5"><p className="text-xs font-bold uppercase text-amber-800">Productos sin ventas</p><p className="mt-2 text-2xl font-black text-amber-900">{productosSinVentas.length}</p><p className="mt-1 text-xs text-amber-800">Del catálogo activo en el periodo</p></article>}
         </section>
@@ -310,21 +326,21 @@ export default function ReportesInventarioView({ modo }: ReportesInventarioViewP
 
         <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
           <header className="flex items-center justify-between gap-4 border-b border-slate-200 px-5 py-4">
-            <div><p className="text-[10px] font-bold uppercase tracking-wider text-blue-700">{modo === 'diario' ? 'Detalle diario' : 'Desglose mensual'}</p><h2 className="mt-1 font-bold">{modo === 'diario' ? 'Ventas de la fecha' : 'Registro de ventas'}</h2></div>
-            <span className="text-xs text-slate-500">{ventasAgrupadas.length} {ventasAgrupadas.length === 1 ? 'compra' : 'compras'}</span>
+            <div><p className="text-[10px] font-bold uppercase tracking-wider text-blue-700">{modo === 'diario' ? 'Detalle diario' : 'Desglose mensual'}</p><h2 className="mt-1 font-bold">{modo === 'diario' ? 'Ventas y compras de la fecha' : 'Registro de ventas'}</h2></div>
+            <span className="text-xs text-slate-500">{modo === 'diario' ? `${ventasAgrupadas.length + comprasAgrupadas.length} operaciones` : `${ventasAgrupadas.length} ventas`}</span>
           </header>
           {modo === 'diario' ? (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[780px] text-left text-sm">
-                <thead className="bg-slate-50 text-xs uppercase text-slate-500"><tr><th className="px-4 py-3">Código de seguimiento</th><th className="px-4 py-3">Fecha y hora</th><th className="px-4 py-3">Productos</th><th className="px-4 py-3">Unidades</th><th className="px-4 py-3">Motivo</th><th className="px-4 py-3 text-right">Total</th><th className="px-4 py-3 text-right">Detalle</th></tr></thead>
-                <tbody className="divide-y divide-slate-100">{ventasAgrupadas.map((venta) => <tr key={venta.clave}><td className="px-4 py-3 font-mono text-xs font-semibold text-blue-800">{venta.codigo}</td><td className="whitespace-nowrap px-4 py-3 text-xs text-slate-500">{formatoFecha(venta.fecha)}</td><td className="px-4 py-3">{venta.movimientos.length}</td><td className="px-4 py-3">{venta.unidades}</td><td className="px-4 py-3">{venta.motivo}</td><td className="px-4 py-3 text-right font-semibold">{formatoMoneda(venta.total)}</td><td className="px-4 py-3 text-right"><VentaDetalle venta={venta} /></td></tr>)}{!cargando && ventasAgrupadas.length === 0 && <tr><td colSpan={7} className="px-4 py-10 text-center text-sm text-slate-500">No hay ventas en esta fecha.</td></tr>}</tbody>
+                <thead className="bg-slate-50 text-xs uppercase text-slate-500"><tr><th className="px-4 py-3">Tipo</th><th className="px-4 py-3">Código de seguimiento</th><th className="px-4 py-3">Fecha y hora</th><th className="px-4 py-3">Productos</th><th className="px-4 py-3">Unidades</th><th className="px-4 py-3">Motivo</th><th className="px-4 py-3 text-right">Total</th><th className="px-4 py-3 text-right">Detalle</th></tr></thead>
+                <tbody className="divide-y divide-slate-100">{operacionesDiarias.map((operacion) => <tr key={`${operacion.tipoOperacion}-${operacion.clave}`}><td className="px-4 py-3 font-semibold">{operacion.tipoOperacion}</td><td className="px-4 py-3 font-mono text-xs font-semibold text-blue-800">{operacion.codigo}</td><td className="whitespace-nowrap px-4 py-3 text-xs text-slate-500">{formatoFecha(operacion.fecha)}</td><td className="px-4 py-3">{operacion.movimientos.length}</td><td className="px-4 py-3">{operacion.unidades}</td><td className="px-4 py-3">{operacion.motivo}</td><td className="px-4 py-3 text-right font-semibold">{operacion.tipoOperacion === 'Venta' ? formatoMoneda(operacion.total) : '—'}</td><td className="px-4 py-3 text-right"><OperacionDetalle venta={operacion} etiqueta={operacion.tipoOperacion} /></td></tr>)}{!cargando && operacionesDiarias.length === 0 && <tr><td colSpan={8} className="px-4 py-10 text-center text-sm text-slate-500">No hay ventas ni compras en esta fecha.</td></tr>}</tbody>
               </table>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[780px] text-left text-sm">
                 <thead className="bg-slate-50 text-xs uppercase text-slate-500"><tr><th className="px-4 py-3">Código de seguimiento</th><th className="px-4 py-3">Fecha y hora</th><th className="px-4 py-3">Productos</th><th className="px-4 py-3">Unidades</th><th className="px-4 py-3">Motivo</th><th className="px-4 py-3 text-right">Total</th><th className="px-4 py-3 text-right">Detalle</th></tr></thead>
-                <tbody className="divide-y divide-slate-100">{ventasAgrupadas.map((venta) => <tr key={venta.clave}><td className="px-4 py-3 font-mono text-xs font-semibold text-blue-800">{venta.codigo}</td><td className="whitespace-nowrap px-4 py-3 text-xs text-slate-500">{formatoFecha(venta.fecha)}</td><td className="px-4 py-3">{venta.movimientos.length}</td><td className="px-4 py-3">{venta.unidades}</td><td className="px-4 py-3">{venta.motivo}</td><td className="px-4 py-3 text-right font-semibold">{formatoMoneda(venta.total)}</td><td className="px-4 py-3 text-right"><VentaDetalle venta={venta} /></td></tr>)}{!cargando && ventasAgrupadas.length === 0 && <tr><td colSpan={7} className="px-4 py-10 text-center text-sm text-slate-500">No hay ventas para este mes.</td></tr>}</tbody>
+                <tbody className="divide-y divide-slate-100">{ventasAgrupadas.map((venta) => <tr key={venta.clave}><td className="px-4 py-3 font-mono text-xs font-semibold text-blue-800">{venta.codigo}</td><td className="whitespace-nowrap px-4 py-3 text-xs text-slate-500">{formatoFecha(venta.fecha)}</td><td className="px-4 py-3">{venta.movimientos.length}</td><td className="px-4 py-3">{venta.unidades}</td><td className="px-4 py-3">{venta.motivo}</td><td className="px-4 py-3 text-right font-semibold">{formatoMoneda(venta.total)}</td><td className="px-4 py-3 text-right"><OperacionDetalle venta={venta} etiqueta="Venta" /></td></tr>)}{!cargando && ventasAgrupadas.length === 0 && <tr><td colSpan={7} className="px-4 py-10 text-center text-sm text-slate-500">No hay ventas para este mes.</td></tr>}</tbody>
               </table>
             </div>
           )}

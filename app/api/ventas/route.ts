@@ -4,25 +4,13 @@ import type { PoolClient } from 'pg';
 import pool from '@/lib/db';
 import { isAuthenticated } from '@/lib/auth';
 import { ensureInventoryTables } from '@/lib/inventory-db';
+import { createInventoryTrackingCode } from '@/lib/inventory-tracking';
 
 export const runtime = 'nodejs';
 
 interface ItemVenta {
   producto_id: number;
   cantidad: number;
-}
-
-function createTrackingCode() {
-  const dateParts = new Intl.DateTimeFormat('en', {
-    timeZone: 'America/Bogota',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).formatToParts(new Date());
-  const date = ['year', 'month', 'day']
-    .map((type) => dateParts.find((part) => part.type === type)?.value || '')
-    .join('');
-  return `WR-${date}-${randomUUID().slice(0, 12).toUpperCase()}`;
 }
 
 export async function POST(request: Request) {
@@ -90,7 +78,7 @@ export async function POST(request: Request) {
     }
 
     const transaccionId = randomUUID();
-    const codigoSeguimiento = tipo === 'VENTA' ? createTrackingCode() : null;
+    const codigoSeguimiento = tipo === 'VENTA' ? createInventoryTrackingCode() : null;
     const motivo = tipo === 'VENTA' ? 'Venta' : tipo === 'USO_INTERNO' ? 'Uso interno' : detalle;
     const movimientos = [];
     let total = 0;

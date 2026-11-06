@@ -1,8 +1,10 @@
+import { randomUUID } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import type { PoolClient } from 'pg';
 import pool from '@/lib/db';
 import { isAuthenticated } from '@/lib/auth';
 import { ensureInventoryTables } from '@/lib/inventory-db';
+import { createInventoryTrackingCode } from '@/lib/inventory-tracking';
 
 export const runtime = 'nodejs';
 
@@ -80,11 +82,14 @@ export async function POST(request: Request) {
     }
 
     await client.query('UPDATE productos SET stock_actual = $1 WHERE id = $2', [nuevoStock, productoId]);
+    const transaccionId = tipo === 'ENTRADA' ? randomUUID() : null;
+    const codigoSeguimiento = tipo === 'ENTRADA' ? createInventoryTrackingCode() : null;
     const result = await client.query(
-      `INSERT INTO movimientos (producto_id, tipo, cantidad, motivo_tipo, motivo, precio_unitario, fecha)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `INSERT INTO movimientos
+         (producto_id, tipo, cantidad, motivo_tipo, motivo, precio_unitario, fecha, transaccion_id, codigo_seguimiento)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING *`,
-      [productoId, tipo, cantidad, motivoTipo, motivo, producto.rows[0].precio, fecha]
+      [productoId, tipo, cantidad, motivoTipo, motivo, producto.rows[0].precio, fecha, transaccionId, codigoSeguimiento]
     );
     await client.query('COMMIT');
     return NextResponse.json(result.rows[0], { status: 201 });

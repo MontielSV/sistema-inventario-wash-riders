@@ -30,4 +30,4 @@ Antes de desplegar, configura `DATABASE_URL` y `AUTH_SECRET` en Vercel. Para apr
 - `/api/productos`: consulta (`GET`), creación (`POST`) y edición (`PUT`) del catálogo.
 - `/api/inventario`: historial (`GET`), registro (`POST`) y edición (`PUT`) de movimientos.
 
-Las rutas de productos, movimientos y dashboard requieren una sesión válida. Los movimientos actualizan stock e historial dentro de una transacción PostgreSQL.
+Las rutas de productos, movimientos y dashboard requieren una sesión válida. Los movimientos actualizan stock e historial dentro de una transacción PostgreSQL. Las entradas de inventario reciben un código de seguimiento `WR-`; el reporte diario muestra también las compras de inventario y sus unidades junto con las ventas.

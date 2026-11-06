@@ -75,6 +75,7 @@ export default function InventarioView({ vista, onNavigate }: InventarioViewProp
   const [motivo, setMotivo] = useState('');
   const [fecha, setFecha] = useState(getLocalDateTimeInput);
   const [procesando, setProcesando] = useState(false);
+  const [confirmacion, setConfirmacion] = useState('');
 
   const cargarDatos = async () => {
     setCargando(true);
@@ -137,6 +138,12 @@ export default function InventarioView({ vista, onNavigate }: InventarioViewProp
         throw new Error(errData.error || 'No se pudo registrar el movimiento');
       }
 
+      const resultado = await res.json();
+      setConfirmacion(movimientoEditando
+        ? 'Movimiento actualizado correctamente.'
+        : resultado.codigo_seguimiento
+          ? `Movimiento registrado con código ${resultado.codigo_seguimiento}.`
+          : 'Movimiento registrado correctamente.');
       await cargarDatos();
       limpiarFormulario();
     } catch (err: any) {
@@ -204,6 +211,12 @@ export default function InventarioView({ vista, onNavigate }: InventarioViewProp
               : 'Registra entradas y salidas manuales del inventario.'}
           </p>
         </header>
+
+        {vista === 'registrar' && confirmacion && (
+          <p role="status" className="rounded-xl border border-emerald-500/30 bg-emerald-950/30 p-4 text-sm font-semibold text-emerald-300">
+            {confirmacion}
+          </p>
+        )}
 
         {vista === 'registrar' && <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4" aria-label="Resumen de inventario">
           <div className="bg-[#0f0f0f] border border-white/10 rounded-xl p-5">
