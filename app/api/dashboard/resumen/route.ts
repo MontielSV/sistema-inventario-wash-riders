@@ -2,6 +2,7 @@ import { Pool } from 'pg';
 import { NextResponse } from 'next/server';
 import { isAuthenticated } from '@/lib/auth';
 
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
