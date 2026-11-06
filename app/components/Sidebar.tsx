@@ -26,15 +26,13 @@ export default function Sidebar({ vistaActiva, setVistaActiva, onLogout }: Sideb
   ];
 
   return (
-    <aside className="w-full bg-[#0c0c0c] border-b border-white/10 p-3 text-white print:hidden lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:min-h-screen lg:border-b-0 lg:border-r lg:p-4 lg:flex lg:flex-col lg:justify-between">
+    <aside className="w-full bg-[#0c0c0c] border-b border-white/10 p-3 text-white print:hidden lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:min-h-screen lg:border-b-0 lg:border-r lg:p-4 lg:flex lg:flex-col lg:justify-between shrink-0">
       <div className="space-y-3 lg:space-y-6">
-        {/* Logo / Encabezado */}
         <div className="px-3 py-2">
           <h2 className="text-xl font-black italic tracking-tighter text-[#E50914]">WASH RIDERS</h2>
-          <p className="text-[10px] text-slate-400 uppercase tracking-widest">Sistema de Inventarios</p>
+          <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Gestión de Inventario</p>
         </div>
 
-        {/* Menú de Opciones */}
         <nav className="flex gap-1 overflow-x-auto lg:flex-col lg:space-y-1" aria-label="Navegación principal">
           {menuItems.map((item) => {
             const Icono = item.icono;
@@ -57,7 +55,6 @@ export default function Sidebar({ vistaActiva, setVistaActiva, onLogout }: Sideb
         </nav>
       </div>
 
-      {/* Botón de Cerrar Sesión */}
       <button
         onClick={onLogout}
         className="mt-3 w-full flex items-center gap-3 px-4 py-2.5 lg:py-3 rounded-lg text-xs font-bold uppercase text-red-400 hover:bg-red-950/30 transition-all border border-red-500/20 lg:mt-0"

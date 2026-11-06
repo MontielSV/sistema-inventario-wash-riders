@@ -67,7 +67,6 @@ export default function Home() {
     );
   }
 
-  // 1. Si no está autenticado, muestra la Pantalla de Login
   if (!autenticado) {
     return (
       <div className="min-h-screen bg-[#030303] text-white flex items-center justify-center p-4 font-sans bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(229,9,20,0.15),rgba(0,0,0,0))]">
@@ -126,26 +125,11 @@ export default function Home() {
               {cargandoLogin ? 'Ingresando...' : 'Iniciar Sesión'}
             </button>
           </form>
-
-          <p className="text-[10px] text-center text-slate-600 uppercase tracking-wider">
-            Acceso restringido únicamente para personal autorizado
-          </p>
-          {process.env.NEXT_PUBLIC_DEVELOPER_EMAIL ? (
-            <a
-              href={`mailto:${process.env.NEXT_PUBLIC_DEVELOPER_EMAIL}?subject=Soporte%20Wash%20Riders`}
-              className="block text-center text-xs font-semibold text-slate-400 underline decoration-white/20 underline-offset-4 transition-colors hover:text-white"
-            >
-              Contactar al desarrollador
-            </a>
-          ) : (
-            <p className="text-center text-xs font-semibold text-slate-400">Contactar al desarrollador</p>
-          )}
         </div>
       </div>
     );
   }
 
-  // 2. Si está autenticado, muestra el Panel con Sidebar Lateral y las 6 vistas
   return (
     <div className="flex min-h-screen flex-col bg-[#030303] lg:flex-row">
       <Sidebar 
