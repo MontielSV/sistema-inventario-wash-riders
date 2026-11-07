@@ -7,6 +7,7 @@ import {
   CubeIcon,
   ExclamationTriangleIcon,
   Squares2X2Icon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
 import VentasLineChart from './VentasLineChart';
 
@@ -32,6 +33,8 @@ interface Movimiento {
   precio_unitario: number;
 }
 
+type DetalleDashboard = 'productos-movidos' | 'disponibles' | 'stock-bajo' | 'movimientos-hoy';
+
 const fechaLocalClave = (fecha: Date) => {
   const año = fecha.getFullYear();
   const mes = String(fecha.getMonth() + 1).padStart(2, '0');
@@ -48,6 +51,7 @@ export default function DashboardView({ onNavigate }: DashboardViewProps) {
   const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
+  const [detalleActivo, setDetalleActivo] = useState<DetalleDashboard | null>(null);
 
   const cargarProductos = async () => {
     setCargando(true);
@@ -92,23 +96,35 @@ export default function DashboardView({ onNavigate }: DashboardViewProps) {
     0
   );
   const unidadesMovidasHoy = movimientosHoy.reduce((total, movimiento) => total + Number(movimiento.cantidad), 0);
-  const conteoPorProducto = new Map<string, { nombre: string; codigo: string; cantidad: number }>();
+  const conteoPorProducto = new Map<string, {
+    nombre: string;
+    codigo: string;
+    cantidad: number;
+    entradas: number;
+    salidas: number;
+  }>();
   movimientosHoy.forEach((movimiento) => {
     const codigo = movimiento.codigo_producto || String(movimiento.producto_id);
-    const actual = conteoPorProducto.get(codigo);
+    const clave = String(movimiento.producto_id);
+    const actual = conteoPorProducto.get(clave);
+    const cantidad = Number(movimiento.cantidad);
     if (actual) {
-      actual.cantidad += Number(movimiento.cantidad);
+      actual.cantidad += cantidad;
+      if (movimiento.tipo === 'ENTRADA') actual.entradas += cantidad;
+      else actual.salidas += cantidad;
     } else {
-      conteoPorProducto.set(codigo, {
+      conteoPorProducto.set(clave, {
         nombre: movimiento.nombre_producto || `Producto ${codigo}`,
         codigo,
-        cantidad: Number(movimiento.cantidad),
+        cantidad,
+        entradas: movimiento.tipo === 'ENTRADA' ? cantidad : 0,
+        salidas: movimiento.tipo === 'SALIDA' ? cantidad : 0,
       });
     }
   });
-  const productosMasMovidos = Array.from(conteoPorProducto.values())
-    .sort((primero, segundo) => segundo.cantidad - primero.cantidad)
-    .slice(0, 5);
+  const productosMovidosHoy = Array.from(conteoPorProducto.values())
+    .sort((primero, segundo) => segundo.cantidad - primero.cantidad);
+  const productosMasMovidos = productosMovidosHoy.slice(0, 5);
   const productoMasMovido = productosMasMovidos[0];
   const ahora = new Date();
   const mesActual = fechaHoy.slice(0, 7);
@@ -145,6 +161,24 @@ export default function DashboardView({ onNavigate }: DashboardViewProps) {
     .sort((primera, segunda) => segunda.fecha.localeCompare(primera.fecha))
     .slice(0, 5);
   const formatoMoneda = (valor: number) => `$${valor.toLocaleString('es-CO')} COP`;
+  const detalles = {
+    'productos-movidos': {
+      titulo: 'Productos más movidos hoy',
+      descripcion: 'Productos ordenados por la cantidad total de unidades movidas.',
+    },
+    disponibles: {
+      titulo: 'Unidades disponibles',
+      descripcion: 'Existencias actuales por producto.',
+    },
+    'stock-bajo': {
+      titulo: 'Alertas de stock bajo',
+      descripcion: 'Productos cuya existencia está en el mínimo o por debajo.',
+    },
+    'movimientos-hoy': {
+      titulo: 'Unidades movidas hoy',
+      descripcion: 'Unidades de entrada y salida agrupadas por producto.',
+    },
+  } satisfies Record<DetalleDashboard, { titulo: string; descripcion: string }>;
 
   return (
     <section className="min-h-screen bg-slate-50 p-4 text-slate-900 md:p-8">
@@ -173,42 +207,70 @@ export default function DashboardView({ onNavigate }: DashboardViewProps) {
         )}
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-6">
-          <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <button
+            type="button"
+            onClick={() => onNavigate('productos')}
+            className="rounded-xl border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:border-blue-300 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+          >
             <div className="flex items-center justify-between text-slate-500">
               <span className="text-xs font-bold uppercase">Productos registrados</span>
               <CubeIcon className="h-5 w-5" />
             </div>
             <p className="mt-3 text-3xl font-black">{cargando ? '...' : productos.length}</p>
-          </article>
-          <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          </button>
+          <button
+            type="button"
+            onClick={() => setDetalleActivo('productos-movidos')}
+            aria-expanded={detalleActivo === 'productos-movidos'}
+            aria-controls="detalle-dashboard"
+            className="rounded-xl border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:border-blue-300 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+          >
             <div className="flex items-center justify-between text-slate-500">
               <span className="text-xs font-bold uppercase">Producto más movido hoy</span>
               <ChartBarIcon className="h-5 w-5 text-blue-700" />
             </div>
             <p className="mt-3 truncate text-lg font-black text-slate-900">{cargando ? '...' : productoMasMovido?.nombre || 'Sin movimientos'}</p>
             <p className="mt-1 truncate text-xs text-slate-500">{productoMasMovido ? `${productoMasMovido.codigo} · ${productoMasMovido.cantidad} unidades` : 'Sin movimientos registrados'}</p>
-          </article>
-          <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          </button>
+          <button
+            type="button"
+            onClick={() => setDetalleActivo('disponibles')}
+            aria-expanded={detalleActivo === 'disponibles'}
+            aria-controls="detalle-dashboard"
+            className="rounded-xl border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:border-blue-300 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+          >
             <div className="flex items-center justify-between text-slate-500">
               <span className="text-xs font-bold uppercase">Unidades disponibles</span>
               <Squares2X2Icon className="h-5 w-5 text-blue-700" />
             </div>
             <p className="mt-3 text-3xl font-black text-blue-800">{cargando ? '...' : unidades}</p>
-          </article>
-          <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          </button>
+          <button
+            type="button"
+            onClick={() => setDetalleActivo('stock-bajo')}
+            aria-expanded={detalleActivo === 'stock-bajo'}
+            aria-controls="detalle-dashboard"
+            className="rounded-xl border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:border-amber-300 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600"
+          >
             <div className="flex items-center justify-between text-slate-500">
               <span className="text-xs font-bold uppercase">Alertas de stock bajo</span>
               <ExclamationTriangleIcon className="h-5 w-5 text-amber-700" />
             </div>
             <p className="mt-3 text-3xl font-black text-amber-800">{cargando ? '...' : stockBajo.length}</p>
-          </article>
-          <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          </button>
+          <button
+            type="button"
+            onClick={() => setDetalleActivo('movimientos-hoy')}
+            aria-expanded={detalleActivo === 'movimientos-hoy'}
+            aria-controls="detalle-dashboard"
+            className="rounded-xl border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:border-blue-300 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+          >
             <div className="flex items-center justify-between text-slate-500">
               <span className="text-xs font-bold uppercase">Unidades movidas hoy</span>
               <ChartBarIcon className="h-5 w-5 text-blue-700" />
             </div>
             <p className="mt-3 text-3xl font-black text-blue-800">{cargando ? '...' : unidadesMovidasHoy}</p>
-          </article>
+          </button>
           <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between text-slate-500">
               <span className="text-xs font-bold uppercase">Ingresos de hoy</span>
@@ -217,6 +279,97 @@ export default function DashboardView({ onNavigate }: DashboardViewProps) {
             <p className="mt-3 text-2xl font-black text-slate-900">{cargando ? '...' : formatoMoneda(ingresosHoy)}</p>
           </article>
         </div>
+
+        {detalleActivo && (
+          <section id="detalle-dashboard" aria-label={detalles[detalleActivo].titulo} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <header className="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
+              <div>
+                <h2 className="text-lg font-bold">{detalles[detalleActivo].titulo}</h2>
+                <p className="mt-1 text-sm text-slate-500">{detalles[detalleActivo].descripcion}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDetalleActivo(null)}
+                aria-label="Cerrar detalle"
+                className="rounded-md p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600"
+              >
+                <XMarkIcon aria-hidden="true" className="h-5 w-5" />
+              </button>
+            </header>
+
+            {detalleActivo === 'productos-movidos' && (
+              productosMasMovidos.length ? (
+                <ul className="mt-3 divide-y divide-slate-100">
+                  {productosMasMovidos.map((producto) => (
+                    <li key={producto.codigo} className="flex items-center justify-between gap-4 py-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-bold text-slate-900">{producto.nombre}</p>
+                        <p className="text-xs text-slate-500">Código: {producto.codigo}</p>
+                      </div>
+                      <span className="shrink-0 text-sm font-bold text-blue-800">{producto.cantidad} unidades</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : <p className="py-6 text-center text-sm text-slate-500">No hay productos movidos hoy.</p>
+            )}
+
+            {detalleActivo === 'disponibles' && (
+              productos.length ? (
+                <ul className="mt-3 divide-y divide-slate-100">
+                  {productos.map((producto) => (
+                    <li key={producto.id} className="flex items-center justify-between gap-4 py-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-bold text-slate-900">{producto.nombre}</p>
+                        <p className="text-xs text-slate-500">Código: {producto.codigo || 'Sin código'}</p>
+                      </div>
+                      <span className="shrink-0 text-sm font-bold text-blue-800">{producto.stock_actual} unidades</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : <p className="py-6 text-center text-sm text-slate-500">No hay productos registrados.</p>
+            )}
+
+            {detalleActivo === 'stock-bajo' && (
+              stockBajo.length ? (
+                <ul className="mt-3 divide-y divide-slate-100">
+                  {stockBajo.map((producto) => (
+                    <li key={producto.id} className="flex items-center justify-between gap-4 py-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-bold text-slate-900">{producto.nombre}</p>
+                        <p className="text-xs text-slate-500">Código: {producto.codigo || 'Sin código'}</p>
+                      </div>
+                      <span className="shrink-0 text-right text-sm font-bold text-amber-800">
+                        {producto.stock_actual} disponibles
+                        <span className="block text-xs font-medium text-slate-500">Mínimo: {producto.stock_minimo}</span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : <p className="py-6 text-center text-sm text-slate-500">No hay productos con stock bajo.</p>
+            )}
+
+            {detalleActivo === 'movimientos-hoy' && (
+              productosMovidosHoy.length ? (
+                <ul className="mt-3 divide-y divide-slate-100">
+                  {productosMovidosHoy.map((producto) => (
+                    <li key={producto.codigo} className="flex items-center justify-between gap-4 py-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-bold text-slate-900">{producto.nombre}</p>
+                        <p className="text-xs text-slate-500">Código: {producto.codigo}</p>
+                      </div>
+                      <span className="shrink-0 text-right text-sm font-bold text-slate-800">
+                        {producto.cantidad} unidades
+                        <span className="block text-xs font-medium text-slate-500">
+                          Entradas: {producto.entradas} · Salidas: {producto.salidas}
+                        </span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : <p className="py-6 text-center text-sm text-slate-500">No hay unidades movidas hoy.</p>
+            )}
+          </section>
+        )}
 
         <section className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(300px,0.6fr)]">
           <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">

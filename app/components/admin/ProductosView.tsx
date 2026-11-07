@@ -19,7 +19,7 @@ export default function ProductosView() {
   const [editando, setEditando] = useState<Producto | null>(null);
   const [guardando, setGuardando] = useState(false);
   const [importando, setImportando] = useState(false);
-  const [mensajeCarga, setMensajeCarga] = useState('');
+  const [errorCarga, setErrorCarga] = useState('');
   const [errorModal, setErrorModal] = useState('');
 
   // Formulario
@@ -49,22 +49,19 @@ export default function ProductosView() {
         const response = await fetch('/api/productos/importar', { method: 'POST' });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || 'No se pudo integrar el catálogo WR Colombia.');
-        if (activo) {
-          setMensajeCarga(
-            `Catálogo WR integrado: ${data.agregados} agregados, ${data.existentes} ya existentes${data.retirados ? ` y ${data.retirados} productos Bolt retirados` : ''}.`
-          );
-        }
       } catch (caught) {
-        if (activo) setMensajeCarga(caught instanceof Error ? caught.message : 'Error al integrar el catálogo.');
+        if (activo) setErrorCarga(caught instanceof Error ? caught.message : 'Error al integrar el catálogo.');
       }
 
       try {
         const response = await fetch('/api/productos', { cache: 'no-store' });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || 'No se pudo cargar el catálogo.');
-        if (activo) setProductos(Array.isArray(data) ? data : []);
+        if (activo) {
+          setProductos(Array.isArray(data) ? data : []);
+        }
       } catch (caught) {
-        if (activo) setMensajeCarga(caught instanceof Error ? caught.message : 'Error al cargar productos.');
+        if (activo) setErrorCarga(caught instanceof Error ? caught.message : 'Error al cargar productos.');
       } finally {
         if (activo) setImportando(false);
       }
@@ -198,7 +195,7 @@ export default function ProductosView() {
         </div>
       </header>
 
-      {mensajeCarga && <p role="status" className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900">{mensajeCarga}</p>}
+      {errorCarga && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{errorCarga}</p>}
 
       <div className="flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
