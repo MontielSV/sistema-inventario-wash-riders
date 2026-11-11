@@ -13,42 +13,42 @@ const accentStyles = {
   blue: {
     eyebrow: 'text-blue-700',
     title: 'text-blue-900',
-    icon: 'border-blue-300 bg-blue-200 text-blue-800',
+    icon: 'border-blue-400 bg-blue-300 text-blue-950',
   },
   cyan: {
     eyebrow: 'text-cyan-700',
     title: 'text-cyan-800',
-    icon: 'border-cyan-300 bg-cyan-200 text-cyan-800',
+    icon: 'border-cyan-400 bg-cyan-300 text-cyan-950',
   },
   emerald: {
     eyebrow: 'text-emerald-700',
     title: 'text-emerald-800',
-    icon: 'border-emerald-300 bg-emerald-200 text-emerald-800',
+    icon: 'border-emerald-400 bg-emerald-300 text-emerald-950',
   },
   red: {
     eyebrow: 'text-rose-700',
     title: 'text-rose-800',
-    icon: 'border-rose-300 bg-rose-200 text-rose-800',
+    icon: 'border-rose-400 bg-rose-300 text-rose-950',
   },
   amber: {
     eyebrow: 'text-amber-700',
     title: 'text-amber-800',
-    icon: 'border-amber-300 bg-amber-200 text-amber-800',
+    icon: 'border-amber-400 bg-amber-300 text-amber-950',
   },
   sky: {
     eyebrow: 'text-sky-700',
     title: 'text-sky-800',
-    icon: 'border-sky-300 bg-sky-200 text-sky-800',
+    icon: 'border-sky-400 bg-sky-300 text-sky-950',
   },
   teal: {
     eyebrow: 'text-teal-700',
     title: 'text-teal-800',
-    icon: 'border-teal-300 bg-teal-200 text-teal-800',
+    icon: 'border-teal-400 bg-teal-300 text-teal-950',
   },
   violet: {
     eyebrow: 'text-violet-700',
     title: 'text-violet-800',
-    icon: 'border-violet-300 bg-violet-200 text-violet-800',
+    icon: 'border-violet-400 bg-violet-300 text-violet-950',
   },
 } as const;
 
