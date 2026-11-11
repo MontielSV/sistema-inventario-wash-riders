@@ -5,10 +5,12 @@ import {
   ArrowDownCircleIcon, 
   ArrowUpCircleIcon,
   ArrowPathIcon,
+  ClockIcon,
   MagnifyingGlassIcon,
   PencilSquareIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
+import SectionHeader from './SectionHeader';
 
 interface Producto {
   id: number;
@@ -199,18 +201,15 @@ export default function InventarioView({ vista, onNavigate }: InventarioViewProp
     <div className="inventory-light min-h-screen bg-[#030303] p-4 font-sans text-white md:p-8">
       <div className={`mx-auto space-y-8 ${vista === 'historial' ? 'max-w-[1600px]' : 'max-w-7xl'}`}>
         
-        {/* Cabecera */}
-        <header className="pb-6 border-b border-white/10">
-          <h1 className="text-3xl md:text-4xl font-black italic tracking-tighter text-white flex items-center gap-3">
-            <ArrowsRightLeftIcon className="w-8 h-8 text-[#E50914]" />
-            {vista === 'historial' ? 'Historial de movimientos' : 'Registrar movimiento'}
-          </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            {vista === 'historial'
-              ? 'Consulta las entradas y salidas registradas en el inventario.'
-              : 'Registra entradas y salidas manuales del inventario.'}
-          </p>
-        </header>
+        <SectionHeader
+          title={vista === 'historial' ? 'Historial' : 'Movimiento'}
+          description={vista === 'historial'
+            ? 'Consulta y filtra las entradas y salidas guardadas en el inventario.'
+            : 'Registra entradas y salidas manuales para mantener el stock actualizado.'}
+          icon={vista === 'historial'
+            ? <ClockIcon className="h-6 w-6" />
+            : <ArrowsRightLeftIcon className="h-6 w-6" />}
+        />
 
         {vista === 'registrar' && confirmacion && (
           <p role="status" className="rounded-xl border border-emerald-500/30 bg-emerald-950/30 p-4 text-sm font-semibold text-emerald-300">

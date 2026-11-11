@@ -8,6 +8,7 @@ import {
   PrinterIcon,
 } from '@heroicons/react/24/outline';
 import VentasLineChart from './VentasLineChart';
+import SectionHeader from './SectionHeader';
 
 interface Movimiento {
   id: number;
@@ -277,16 +278,20 @@ export default function ReportesInventarioView({ modo }: ReportesInventarioViewP
   return (
     <section className="min-h-screen bg-slate-50 p-4 text-slate-900 md:p-8 print:bg-white print:p-0">
       <div className="mx-auto max-w-7xl space-y-6">
-        <header className="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-end sm:justify-between print:hidden">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-blue-700">Wash Riders · Ventas</p>
-            <h1 className="mt-2 text-3xl font-black tracking-tight">{modo === 'diario' ? 'Reporte de ventas' : 'Reporte mensual'}</h1>
-            <p className="mt-2 text-sm text-slate-500">{modo === 'diario' ? 'Consulta ventas y productos por fecha.' : 'Analiza ventas, productos y actividad del mes.'}</p>
-          </div>
+        <SectionHeader
+          title={modo === 'diario' ? 'Diario' : 'Mensual'}
+          description={modo === 'diario'
+            ? 'Consulta las ventas, compras y movimientos de una fecha.'
+            : 'Analiza ventas, productos y actividad durante el mes.'}
+          icon={modo === 'diario'
+            ? <CalendarDaysIcon className="h-6 w-6" />
+            : <ChartBarIcon className="h-6 w-6" />}
+          className="print:hidden"
+        >
           <button type="button" onClick={() => window.print()} className="inline-flex items-center gap-2 self-start rounded-lg bg-[#1f5a8a] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#174a74] sm:self-auto">
             <PrinterIcon className="h-4 w-4" /> {modo === 'mensual' ? 'Descargar PDF' : 'Imprimir reporte'}
           </button>
-        </header>
+        </SectionHeader>
 
         <div className="flex flex-wrap items-end justify-between gap-4 print:hidden">
           {modo === 'diario' ? (

@@ -9,6 +9,7 @@ import {
   ShoppingCartIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline';
+import SectionHeader from './SectionHeader';
 
 interface Producto {
   id: number;
@@ -149,14 +150,11 @@ export default function RegistrarVentaView() {
   return (
     <section className="inventory-light min-h-screen bg-[#030303] p-4 text-white md:p-8">
       <div className="mx-auto max-w-7xl space-y-7">
-        <header className="flex flex-col gap-4 border-b border-white/10 pb-6 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-emerald-400">Operación de inventario</p>
-            <h1 className="mt-2 flex items-center gap-3 text-3xl font-black md:text-4xl">
-              <ShoppingCartIcon className="h-8 w-8 text-[#E50914]" /> Registrar venta
-            </h1>
-            <p className="mt-2 text-sm text-slate-400">Registra ventas o salidas de uno o varios productos.</p>
-          </div>
+        <SectionHeader
+          title="Venta"
+          description="Registra una venta o salida y actualiza las existencias del inventario."
+          icon={<ShoppingCartIcon className="h-6 w-6" />}
+        >
           <button
             type="button"
             onClick={() => void cargarProductos()}
@@ -165,7 +163,7 @@ export default function RegistrarVentaView() {
           >
             <ArrowPathIcon className={`h-4 w-4 ${cargando ? 'animate-spin' : ''}`} /> Actualizar stock
           </button>
-        </header>
+        </SectionHeader>
 
         {error && <p role="alert" className="rounded-lg border border-red-500/30 bg-red-950/30 p-4 text-sm text-red-300">{error}</p>}
         {confirmacion && <p role="status" className="rounded-lg border border-emerald-500/30 bg-emerald-950/30 p-4 text-sm text-emerald-300">{confirmacion}</p>}

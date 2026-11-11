@@ -1,6 +1,7 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { PlusIcon, PencilSquareIcon, TrashIcon, MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useState, useEffect, useRef } from 'react';
+import { CheckCircleIcon, CubeIcon, PlusIcon, PencilSquareIcon, TrashIcon, MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import SectionHeader from './SectionHeader';
 
 interface Producto {
   id: number;
@@ -21,6 +22,11 @@ export default function ProductosView() {
   const [importando, setImportando] = useState(false);
   const [errorCarga, setErrorCarga] = useState('');
   const [errorModal, setErrorModal] = useState('');
+  const [mensajeExito, setMensajeExito] = useState('');
+  const [productoPorRetirar, setProductoPorRetirar] = useState<Producto | null>(null);
+  const [retirando, setRetirando] = useState(false);
+  const [errorRetiro, setErrorRetiro] = useState('');
+  const dialogoRetiroRef = useRef<HTMLDialogElement>(null);
 
   // Formulario
   const [codigo, setCodigo] = useState('');
@@ -28,6 +34,11 @@ export default function ProductosView() {
   const [precio, setPrecio] = useState('0');
   const [stockActual, setStockActual] = useState('0');
   const [stockMinimo, setStockMinimo] = useState('4');
+
+  useEffect(() => {
+    const dialogo = dialogoRetiroRef.current;
+    if (productoPorRetirar && dialogo && !dialogo.open) dialogo.showModal();
+  }, [productoPorRetirar]);
 
   const cargarProductos = async () => {
     try {
@@ -73,6 +84,7 @@ export default function ProductosView() {
 
   const abrirModal = (prod: Producto | null = null) => {
     setErrorModal('');
+    setMensajeExito('');
     if (prod) {
       setEditando(prod);
       setCodigo(prod.codigo || '');
@@ -137,8 +149,14 @@ export default function ProductosView() {
       const data = await res.json();
 
       if (res.ok) {
+        const eraEdicion = Boolean(editando);
         setModalAbierto(false);
-        cargarProductos();
+        setMensajeExito(
+          eraEdicion
+            ? `Cambios guardados. Se actualizó el producto "${payload.nombre}".`
+            : `Producto "${payload.nombre}" creado correctamente.`
+        );
+        void cargarProductos();
       } else {
         setErrorModal(data.error || 'Ya existe un producto con ese código.');
       }
@@ -149,23 +167,29 @@ export default function ProductosView() {
     }
   };
 
-  const handleEliminar = async (p: Producto) => {
-    if (!confirm(`¿Retirar "${p.nombre}" del catálogo? Sus movimientos históricos se conservarán.`)) return;
-
+  const confirmarRetiro = async () => {
+    if (!productoPorRetirar) return;
+    setErrorRetiro('');
     try {
       const res = await fetch('/api/productos', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: p.id }),
+        body: JSON.stringify({ id: productoPorRetirar.id }),
       });
       if (res.ok) {
-        cargarProductos();
+        const nombreRetirado = productoPorRetirar.nombre;
+        dialogoRetiroRef.current?.close();
+        setMensajeExito(`Producto "${nombreRetirado}" retirado del catálogo. Sus movimientos históricos se conservaron.`);
+        setErrorCarga('');
+        void cargarProductos();
       } else {
         const data = await res.json();
-        alert(data.error || 'No se pudo retirar el producto del catálogo.');
+        setErrorRetiro(data.error || 'No se pudo retirar el producto del catálogo.');
       }
     } catch {
-      alert('Error al intentar eliminar.');
+      setErrorRetiro('No se pudo conectar con el servidor para retirar el producto.');
+    } finally {
+      setRetirando(false);
     }
   };
 
@@ -178,12 +202,11 @@ export default function ProductosView() {
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 font-sans text-slate-900 md:p-8">
-      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-white/10">
-        <div>
-          <h1 className="text-3xl font-black tracking-tight text-slate-900">Productos</h1>
-          <p className="text-sm text-slate-500">Administra tu catálogo y las cantidades disponibles.</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
+      <SectionHeader
+        title="Productos"
+        description="Administra el catálogo, los precios y las existencias de tus productos."
+        icon={<CubeIcon className="h-6 w-6" />}
+      >
           {importando && <span role="status" className="self-center text-xs font-medium text-blue-700">Integrando catálogo WR Colombia...</span>}
           <button
             type="button"
@@ -192,10 +215,18 @@ export default function ProductosView() {
           >
             <PlusIcon className="h-5 w-5" /> Nuevo producto
           </button>
-        </div>
-      </header>
+      </SectionHeader>
 
       {errorCarga && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{errorCarga}</p>}
+      {mensajeExito && (
+        <div role="status" className="flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+          <CheckCircleIcon aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" />
+          <p className="flex-1 font-medium">{mensajeExito}</p>
+          <button type="button" onClick={() => setMensajeExito('')} aria-label="Cerrar mensaje" className="rounded p-1 text-emerald-800 hover:bg-emerald-100">
+            <XMarkIcon aria-hidden="true" className="h-4 w-4" />
+          </button>
+        </div>
+      )}
 
       <div className="flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -264,7 +295,7 @@ export default function ProductosView() {
                           <button type="button" title="Editar producto" aria-label={`Editar ${p.nombre}`} onClick={() => abrirModal(p)} className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-blue-100 bg-blue-50 text-blue-800 transition-colors hover:bg-blue-100">
                             <PencilSquareIcon className="h-4 w-4" />
                           </button>
-                          <button type="button" title="Retirar del catálogo" aria-label={`Retirar ${p.nombre} del catálogo`} onClick={() => handleEliminar(p)} className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-rose-100 bg-rose-50 text-rose-700 transition-colors hover:bg-rose-100">
+                          <button type="button" title="Retirar del catálogo" aria-label={`Retirar ${p.nombre} del catálogo`} onClick={() => { setMensajeExito(''); setErrorRetiro(''); setProductoPorRetirar(p); }} className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-rose-100 bg-rose-50 text-rose-700 transition-colors hover:bg-rose-100">
                             <TrashIcon className="h-4 w-4" />
                           </button>
                         </div>
@@ -384,6 +415,52 @@ export default function ProductosView() {
           </div>
         </div>
       )}
+
+      <dialog
+        ref={dialogoRetiroRef}
+        aria-labelledby="retirar-producto-titulo"
+        aria-describedby="retirar-producto-descripcion"
+        onClose={() => setProductoPorRetirar(null)}
+        className="m-auto w-[calc(100%-2rem)] max-w-sm rounded-2xl border border-rose-100 bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-slate-950/60"
+      >
+        <div className="p-6">
+          <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-rose-100 text-rose-700">
+            <TrashIcon aria-hidden="true" className="h-5 w-5" />
+          </div>
+          <h2 id="retirar-producto-titulo" className="text-lg font-bold">¿Retirar producto?</h2>
+          <p id="retirar-producto-descripcion" className="mt-2 text-sm leading-6 text-slate-600">
+            {productoPorRetirar
+              ? `Se retirará "${productoPorRetirar.nombre}" del catálogo. Sus movimientos históricos se conservarán.`
+              : 'El producto se retirará del catálogo y sus movimientos históricos se conservarán.'}
+          </p>
+          {errorRetiro && (
+            <p role="alert" className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+              {errorRetiro}
+            </p>
+          )}
+          <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              disabled={retirando}
+              onClick={() => dialogoRetiroRef.current?.close()}
+              className="min-h-11 rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              disabled={retirando}
+              onClick={() => {
+                setRetirando(true);
+                void confirmarRetiro();
+              }}
+              className="min-h-11 rounded-lg bg-rose-700 px-4 text-sm font-bold text-white transition-colors hover:bg-rose-800 disabled:cursor-wait disabled:opacity-50"
+            >
+              {retirando ? 'Retirando...' : 'Sí, retirar producto'}
+            </button>
+          </div>
+        </div>
+      </dialog>
     </div>
   );
-} 
+}
