@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { CheckCircleIcon, CubeIcon, PlusIcon, PencilSquareIcon, TrashIcon, MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import SectionHeader from './SectionHeader';
 
@@ -233,6 +234,9 @@ export default function ProductosView() {
         className="fixed inset-0 m-auto w-[calc(100%-2rem)] max-w-sm rounded-2xl border border-emerald-100 bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-slate-950/60"
       >
         <div className="p-6">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border border-blue-100 bg-white">
+            <Image src="/wash-riders-192.png" alt="Wash Riders" width={48} height={48} unoptimized className="h-full w-full object-contain" />
+          </div>
           <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
             <CheckCircleIcon aria-hidden="true" className="h-6 w-6" />
           </div>

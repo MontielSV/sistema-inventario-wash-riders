@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import Image from 'next/image';
 import {
   CheckCircleIcon,
   ExclamationCircleIcon,
@@ -85,6 +86,9 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
             aria-atomic="true"
             className={`flex w-full max-w-2xl items-start gap-3 rounded-xl border bg-white px-4 py-3 text-sm text-slate-900 shadow-xl shadow-slate-950/20 animate-in slide-in-from-top-2 duration-200 ${noticeStyles[notice.tone].box}`}
           >
+            <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-blue-100 bg-white">
+              <Image src="/wash-riders-192.png" alt="" width={40} height={40} unoptimized className="h-full w-full object-contain" />
+            </span>
             <NoticeIcon aria-hidden="true" className={`mt-0.5 h-5 w-5 shrink-0 ${noticeStyles[notice.tone].icon}`} />
             <p className="min-w-0 flex-1 whitespace-pre-line font-semibold leading-6">{notice.message}</p>
             <button
@@ -107,6 +111,9 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
             aria-describedby="global-confirmation-message"
             className="w-full max-w-xl rounded-xl border border-slate-300 bg-white p-4 text-slate-900 shadow-2xl shadow-slate-950/25 animate-in slide-in-from-top-2 duration-200 sm:p-5"
           >
+            <div className="mb-3 flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg border border-blue-100 bg-white">
+              <Image src="/wash-riders-192.png" alt="" width={40} height={40} unoptimized className="h-full w-full object-contain" />
+            </div>
             <h2 id="global-confirmation-title" className="text-base font-bold">{confirmation.title}</h2>
             <p id="global-confirmation-message" className="mt-1 whitespace-pre-line text-sm leading-6 text-slate-700">
               {confirmation.message}

@@ -10,6 +10,7 @@ import {
   PencilSquareIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
+import { useNotifications } from '../NotificationProvider';
 import SectionHeader from './SectionHeader';
 
 interface Producto {
@@ -77,7 +78,7 @@ export default function InventarioView({ vista, onNavigate }: InventarioViewProp
   const [motivo, setMotivo] = useState('');
   const [fecha, setFecha] = useState(getLocalDateTimeInput);
   const [procesando, setProcesando] = useState(false);
-  const [confirmacion, setConfirmacion] = useState('');
+  const { notify } = useNotifications();
 
   const cargarDatos = async () => {
     setCargando(true);
@@ -115,7 +116,7 @@ export default function InventarioView({ vista, onNavigate }: InventarioViewProp
   const handleRegistrarMovimiento = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!productoId) {
-      alert('Selecciona un producto');
+      notify('Selecciona un producto.', 'error');
       return;
     }
 
@@ -141,15 +142,15 @@ export default function InventarioView({ vista, onNavigate }: InventarioViewProp
       }
 
       const resultado = await res.json();
-      setConfirmacion(movimientoEditando
+      notify(movimientoEditando
         ? 'Movimiento actualizado correctamente.'
         : resultado.codigo_seguimiento
           ? `Movimiento registrado con código ${resultado.codigo_seguimiento}.`
           : 'Movimiento registrado correctamente.');
       await cargarDatos();
       limpiarFormulario();
-    } catch (err: any) {
-      alert(err.message || 'Error en la operación');
+    } catch (err) {
+      notify(err instanceof Error ? err.message : 'Error en la operación.', 'error');
     } finally {
       setProcesando(false);
     }
@@ -211,12 +212,6 @@ export default function InventarioView({ vista, onNavigate }: InventarioViewProp
             ? <ClockIcon className="h-6 w-6" />
             : <ArrowsRightLeftIcon className="h-6 w-6" />}
         />
-
-        {vista === 'registrar' && confirmacion && (
-          <p role="status" className="rounded-xl border border-emerald-500/30 bg-emerald-950/30 p-4 text-sm font-semibold text-emerald-300">
-            {confirmacion}
-          </p>
-        )}
 
         {vista === 'registrar' && <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4" aria-label="Resumen de inventario">
           <div className="bg-[#0f0f0f] border border-white/10 rounded-xl p-5">

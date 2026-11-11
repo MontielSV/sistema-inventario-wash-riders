@@ -9,6 +9,7 @@ import {
   ShoppingCartIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline';
+import { useNotifications } from '../NotificationProvider';
 import SectionHeader from './SectionHeader';
 
 interface Producto {
@@ -40,7 +41,7 @@ export default function RegistrarVentaView() {
   const [cargando, setCargando] = useState(true);
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState('');
-  const [confirmacion, setConfirmacion] = useState('');
+  const { notify } = useNotifications();
 
   const cargarProductos = async () => {
     setCargando(true);
@@ -113,7 +114,6 @@ export default function RegistrarVentaView() {
   const registrarSalida = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError('');
-    setConfirmacion('');
     if (!carrito.length) {
       setError('Agrega por lo menos un producto.');
       return;
@@ -133,7 +133,7 @@ export default function RegistrarVentaView() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'No se pudo registrar la salida.');
 
-      setConfirmacion(data.codigo_seguimiento
+      notify(data.codigo_seguimiento
         ? `Venta registrada. Código: ${data.codigo_seguimiento}`
         : 'Salida registrada y existencias actualizadas.');
       setCarrito([]);
@@ -167,8 +167,6 @@ export default function RegistrarVentaView() {
         </SectionHeader>
 
         {error && <p role="alert" className="rounded-lg border border-red-500/30 bg-red-950/30 p-4 text-sm text-red-300">{error}</p>}
-        {confirmacion && <p role="status" className="rounded-lg border border-emerald-500/30 bg-emerald-950/30 p-4 text-sm text-emerald-300">{confirmacion}</p>}
-
         <form onSubmit={registrarSalida} className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(320px,0.7fr)]">
           <div className="space-y-5 rounded-xl border border-white/10 bg-[#0f0f0f] p-5 md:p-7">
             <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_160px]">

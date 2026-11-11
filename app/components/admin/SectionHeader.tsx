@@ -13,42 +13,42 @@ const accentStyles = {
   blue: {
     eyebrow: 'text-blue-700',
     title: 'text-blue-900',
-    icon: 'bg-blue-100 text-blue-800',
+    icon: 'border-blue-300 bg-blue-200 text-blue-800',
   },
   cyan: {
     eyebrow: 'text-cyan-700',
     title: 'text-cyan-800',
-    icon: 'bg-cyan-100 text-cyan-800',
+    icon: 'border-cyan-300 bg-cyan-200 text-cyan-800',
   },
   emerald: {
     eyebrow: 'text-emerald-700',
     title: 'text-emerald-800',
-    icon: 'bg-emerald-100 text-emerald-800',
+    icon: 'border-emerald-300 bg-emerald-200 text-emerald-800',
   },
   red: {
     eyebrow: 'text-rose-700',
     title: 'text-rose-800',
-    icon: 'bg-rose-100 text-rose-800',
+    icon: 'border-rose-300 bg-rose-200 text-rose-800',
   },
   amber: {
     eyebrow: 'text-amber-700',
     title: 'text-amber-800',
-    icon: 'bg-amber-100 text-amber-800',
+    icon: 'border-amber-300 bg-amber-200 text-amber-800',
   },
   sky: {
     eyebrow: 'text-sky-700',
     title: 'text-sky-800',
-    icon: 'bg-sky-100 text-sky-800',
+    icon: 'border-sky-300 bg-sky-200 text-sky-800',
   },
   teal: {
     eyebrow: 'text-teal-700',
     title: 'text-teal-800',
-    icon: 'bg-teal-100 text-teal-800',
+    icon: 'border-teal-300 bg-teal-200 text-teal-800',
   },
   violet: {
     eyebrow: 'text-violet-700',
     title: 'text-violet-800',
-    icon: 'bg-violet-100 text-violet-800',
+    icon: 'border-violet-300 bg-violet-200 text-violet-800',
   },
 } as const;
 
@@ -67,7 +67,7 @@ export default function SectionHeader({
       <div>
         <p className={`text-xs font-bold uppercase tracking-widest ${colors.eyebrow}`}>Wash Riders - {title}</p>
         <div className="mt-2 flex items-center gap-3">
-          <span aria-hidden="true" className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${colors.icon}`}>
+          <span aria-hidden="true" className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border [&_svg]:h-6 [&_svg]:w-6 [&_svg]:stroke-[2] ${colors.icon}`}>
             {icon}
           </span>
           <h1 className={`text-3xl font-black tracking-tight sm:text-4xl ${colors.title}`}>{title}</h1>
