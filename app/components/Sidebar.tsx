@@ -114,7 +114,7 @@ export default function Sidebar({ vistaActiva, setVistaActiva, onLogout, tema, o
       >
         <div className="p-6">
           <div className="mb-4 flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border border-blue-100 bg-white">
-            <Image src="/favicon.ico" alt="" width={48} height={48} unoptimized className="h-full w-full object-contain" />
+            <Image src="/wash-riders-192.png" alt="Wash Riders" width={48} height={48} unoptimized className="h-full w-full object-contain" />
           </div>
           <h2 id="logout-dialog-title" className="text-lg font-bold">¿Cerrar sesión?</h2>
           <p id="logout-dialog-description" className={`mt-2 text-sm leading-6 ${tema === 'dark' ? 'text-slate-300' : 'text-slate-600'}`}>

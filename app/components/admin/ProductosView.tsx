@@ -27,6 +27,7 @@ export default function ProductosView() {
   const [retirando, setRetirando] = useState(false);
   const [errorRetiro, setErrorRetiro] = useState('');
   const dialogoRetiroRef = useRef<HTMLDialogElement>(null);
+  const dialogoExitoRef = useRef<HTMLDialogElement>(null);
 
   // Formulario
   const [codigo, setCodigo] = useState('');
@@ -39,6 +40,11 @@ export default function ProductosView() {
     const dialogo = dialogoRetiroRef.current;
     if (productoPorRetirar && dialogo && !dialogo.open) dialogo.showModal();
   }, [productoPorRetirar]);
+
+  useEffect(() => {
+    const dialogo = dialogoExitoRef.current;
+    if (mensajeExito && dialogo && !dialogo.open) dialogo.showModal();
+  }, [mensajeExito]);
 
   const cargarProductos = async () => {
     try {
@@ -219,17 +225,31 @@ export default function ProductosView() {
       </SectionHeader>
 
       {errorCarga && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{errorCarga}</p>}
-      {mensajeExito && (
-        <div className="pointer-events-none fixed inset-0 z-[60] flex items-center justify-center p-4 print:hidden">
-          <div role="status" className="pointer-events-auto flex w-full max-w-xl items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 shadow-2xl shadow-slate-950/25">
-            <CheckCircleIcon aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" />
-            <p className="flex-1 font-medium">{mensajeExito}</p>
-            <button type="button" onClick={() => setMensajeExito('')} aria-label="Cerrar mensaje" className="rounded p-1 text-emerald-800 hover:bg-emerald-100">
-              <XMarkIcon aria-hidden="true" className="h-4 w-4" />
+      <dialog
+        ref={dialogoExitoRef}
+        aria-labelledby="producto-exito-titulo"
+        aria-describedby="producto-exito-mensaje"
+        onClose={() => setMensajeExito('')}
+        className="fixed inset-0 m-auto w-[calc(100%-2rem)] max-w-sm rounded-2xl border border-emerald-100 bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-slate-950/60"
+      >
+        <div className="p-6">
+          <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+            <CheckCircleIcon aria-hidden="true" className="h-6 w-6" />
+          </div>
+          <h2 id="producto-exito-titulo" className="text-lg font-bold">Operación completada</h2>
+          <p id="producto-exito-mensaje" className="mt-2 text-sm leading-6 text-slate-600">{mensajeExito}</p>
+          <div className="mt-6 flex justify-end">
+            <button
+              type="button"
+              autoFocus
+              onClick={() => dialogoExitoRef.current?.close()}
+              className="min-h-11 rounded-lg bg-emerald-700 px-4 text-sm font-bold text-white transition-colors hover:bg-emerald-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+            >
+              Entendido
             </button>
           </div>
         </div>
-      )}
+      </dialog>
 
       <div className="flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
