@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Wash Riders - Sistema de Inventarios",
   description: "Gestión de productos, existencias y movimientos de inventario.",
+  icons: {
+    icon: "/apple-icon.png",
+  },
 };
 
 export default function RootLayout({

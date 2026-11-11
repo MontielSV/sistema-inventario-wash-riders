@@ -98,7 +98,7 @@ export default function UsuariosView() {
     <div className="animate-in fade-in duration-300">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <div>
-          <h2 className="text-2xl lg:text-3xl font-black italic flex items-center gap-2">
+          <h2 className="text-2xl lg:text-3xl font-black italic text-rose-800 flex items-center gap-2">
             <ShieldCheckIcon className="w-7 h-7 text-[#E50914]" /> Gestión de Empleados y Permisos
           </h2>
           <p className="text-slate-400 text-xs mt-1">Control gerencial sincronizado directamente con la base de datos central.</p>

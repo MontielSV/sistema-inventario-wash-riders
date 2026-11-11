@@ -203,6 +203,7 @@ export default function ProductosView() {
   return (
     <div className="min-h-screen bg-slate-50 p-4 font-sans text-slate-900 md:p-8">
       <SectionHeader
+        accent="sky"
         title="Productos"
         description="Administra el catálogo, los precios y las existencias de tus productos."
         icon={<CubeIcon className="h-6 w-6" />}
@@ -219,12 +220,14 @@ export default function ProductosView() {
 
       {errorCarga && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{errorCarga}</p>}
       {mensajeExito && (
-        <div role="status" className="flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-          <CheckCircleIcon aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" />
-          <p className="flex-1 font-medium">{mensajeExito}</p>
-          <button type="button" onClick={() => setMensajeExito('')} aria-label="Cerrar mensaje" className="rounded p-1 text-emerald-800 hover:bg-emerald-100">
-            <XMarkIcon aria-hidden="true" className="h-4 w-4" />
-          </button>
+        <div className="pointer-events-none fixed inset-0 z-[60] flex items-center justify-center p-4 print:hidden">
+          <div role="status" className="pointer-events-auto flex w-full max-w-xl items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 shadow-2xl shadow-slate-950/25">
+            <CheckCircleIcon aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" />
+            <p className="flex-1 font-medium">{mensajeExito}</p>
+            <button type="button" onClick={() => setMensajeExito('')} aria-label="Cerrar mensaje" className="rounded p-1 text-emerald-800 hover:bg-emerald-100">
+              <XMarkIcon aria-hidden="true" className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       )}
 
@@ -421,7 +424,7 @@ export default function ProductosView() {
         aria-labelledby="retirar-producto-titulo"
         aria-describedby="retirar-producto-descripcion"
         onClose={() => setProductoPorRetirar(null)}
-        className="m-auto w-[calc(100%-2rem)] max-w-sm rounded-2xl border border-rose-100 bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-slate-950/60"
+        className="fixed inset-0 m-auto w-[calc(100%-2rem)] max-w-sm rounded-2xl border border-rose-100 bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-slate-950/60"
       >
         <div className="p-6">
           <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-rose-100 text-rose-700">

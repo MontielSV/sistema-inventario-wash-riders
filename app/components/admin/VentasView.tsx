@@ -362,7 +362,7 @@ export default function VentasView() {
           <span className="text-[10px] font-black uppercase text-[#E50914] tracking-widest mb-2 block">
             Kitchen Display System KDS
           </span>
-          <h1 className="text-3xl lg:text-4xl font-black italic tracking-tight">Caja Diaria</h1>
+          <h1 className="text-3xl lg:text-4xl font-black italic tracking-tight text-rose-800">Caja Diaria</h1>
         </div>
         
         <div className="flex items-center gap-4 flex-wrap">

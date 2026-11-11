@@ -106,7 +106,7 @@ export default function Sidebar({ vistaActiva, setVistaActiva, onLogout, tema, o
         aria-labelledby="logout-dialog-title"
         aria-describedby="logout-dialog-description"
         onClose={() => setConfirmarCierre(false)}
-        className={`m-auto w-[calc(100%-2rem)] max-w-sm rounded-2xl border p-0 shadow-2xl backdrop:bg-slate-950/60 ${
+        className={`fixed inset-0 m-auto w-[calc(100%-2rem)] max-w-sm rounded-2xl border p-0 shadow-2xl backdrop:bg-slate-950/60 ${
           tema === 'dark'
             ? 'border-slate-700 bg-[#10263b] text-slate-100'
             : 'border-blue-100 bg-white text-slate-900'

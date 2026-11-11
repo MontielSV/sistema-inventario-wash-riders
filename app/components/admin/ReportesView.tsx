@@ -210,7 +210,7 @@ export default function ReportesView() {
       {/* CABECERA Y FILTROS */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b border-white/10 pb-6">
         <div>
-          <h2 className="text-2xl lg:text-3xl font-black italic mb-2 tracking-tight flex items-center gap-2">
+          <h2 className="text-2xl lg:text-3xl font-black italic text-rose-800 mb-2 tracking-tight flex items-center gap-2">
             <ChartBarIcon className="w-7 h-7 text-[#E50914]" /> Reportes Analíticos
           </h2>
           <div className="text-slate-400 text-xs uppercase tracking-widest font-bold">

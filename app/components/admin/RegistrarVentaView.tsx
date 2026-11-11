@@ -151,6 +151,7 @@ export default function RegistrarVentaView() {
     <section className="inventory-light min-h-screen bg-[#030303] p-4 text-white md:p-8">
       <div className="mx-auto max-w-7xl space-y-7">
         <SectionHeader
+          accent="emerald"
           title="Venta"
           description="Registra una venta o salida y actualiza las existencias del inventario."
           icon={<ShoppingCartIcon className="h-6 w-6" />}

@@ -35,7 +35,7 @@ export default function ConfiguracionView() {
         
         {/* Cabecera del módulo */}
         <header className="pb-6 border-b border-white/10">
-          <h1 className="text-3xl font-black italic tracking-tighter text-white">
+          <h1 className="text-3xl font-black italic tracking-tighter text-emerald-400">
             Configuración del Sistema
           </h1>
           <p className="text-xs text-slate-400 mt-1">

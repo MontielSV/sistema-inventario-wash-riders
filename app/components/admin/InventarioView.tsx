@@ -202,6 +202,7 @@ export default function InventarioView({ vista, onNavigate }: InventarioViewProp
       <div className={`mx-auto space-y-8 ${vista === 'historial' ? 'max-w-[1600px]' : 'max-w-7xl'}`}>
         
         <SectionHeader
+          accent={vista === 'historial' ? 'amber' : 'blue'}
           title={vista === 'historial' ? 'Historial' : 'Movimiento'}
           description={vista === 'historial'
             ? 'Consulta y filtra las entradas y salidas guardadas en el inventario.'

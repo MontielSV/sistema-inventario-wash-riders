@@ -185,8 +185,8 @@ export default function DashboardView({ onNavigate }: DashboardViewProps) {
       <div className="mx-auto max-w-7xl space-y-8">
         <header className="flex flex-col gap-4 border-b border-white/10 pb-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-blue-700">Wash Riders</p>
-              <h1 className="mt-2 text-3xl font-black tracking-tight md:text-4xl">Resumen de inventario</h1>
+              <p className="text-xs font-bold uppercase tracking-widest text-cyan-700">Wash Riders</p>
+              <h1 className="mt-2 text-3xl font-black tracking-tight text-cyan-800 md:text-4xl">Resumen de inventario</h1>
             <p className="mt-2 text-sm text-slate-400">Existencias actuales y productos que requieren reposición.</p>
           </div>
           <button
