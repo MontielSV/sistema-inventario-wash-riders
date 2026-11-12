@@ -406,7 +406,7 @@ export default function InventarioView({ vista, onNavigate }: InventarioViewProp
                       <th className="p-3">Productos</th>
                       <th className="p-3">Tipo / Motivo</th>
                       <th className="p-3">Unidades</th>
-                      <th className="p-3">Total venta</th>
+                      <th className="p-3">Total</th>
                       <th className="p-3 text-right">Detalle / acciones</th>
                     </tr>
                   </thead>
@@ -415,9 +415,10 @@ export default function InventarioView({ vista, onNavigate }: InventarioViewProp
                       const principal = grupo[0];
                       const esVenta = principal.motivo_tipo === 'VENTA' || principal.tipo === 'VENTA';
                       const unidades = grupo.reduce((total, item) => total + Number(item.cantidad), 0);
-                      const totalVenta = esVenta
-                        ? grupo.reduce((total, item) => total + Number(item.cantidad) * Number(item.precio_unitario), 0)
-                        : 0;
+                      const totalOperacion = grupo.reduce(
+                        (total, item) => total + Number(item.cantidad) * Number(item.precio_unitario),
+                        0,
+                      );
                       return (
                         <tr key={clave} className="hover:bg-white/5 transition-all">
                           <td className="p-3 pl-4 align-top">
@@ -446,7 +447,7 @@ export default function InventarioView({ vista, onNavigate }: InventarioViewProp
                           </td>
                           <td className="p-3 align-top font-mono font-bold text-white">{unidades}</td>
                           <td className="p-3 align-top font-mono text-xs text-slate-300">
-                            {esVenta ? `$${totalVenta.toLocaleString('es-CO')} COP` : '-'}
+                            {`$${totalOperacion.toLocaleString('es-CO')} COP`}
                           </td>
                           <td className="p-3 text-right align-top">
                             <div className="flex justify-end gap-1">

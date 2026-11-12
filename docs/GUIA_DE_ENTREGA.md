@@ -246,7 +246,7 @@ Retirar un producto no elimina su historial. Evite corregir registros para ocult
 
 - Seleccione la fecha que desea consultar.
 - Revise ventas, cantidades e ingresos calculados con precio unitario × cantidad.
-- El reporte diario presenta ventas y compras del periodo, además de sus unidades.
+- El historial y el reporte diario presentan el total calculado de cada operación (precio unitario × cantidad), incluidas las compras.
 - Seleccione **Imprimir reporte** y use el diálogo del navegador para imprimir o guardar como PDF.
 
 **Reporte mensual**
