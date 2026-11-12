@@ -17,7 +17,9 @@ export const metadata: Metadata = {
   title: "Wash Riders - Sistema de Inventarios",
   description: "Gestión de productos, existencias y movimientos de inventario.",
   icons: {
-    icon: "/apple-icon.png",
+    icon: "/wash-riders-192.png",
+    shortcut: "/wash-riders-192.png",
+    apple: "/wash-riders-192.png",
   },
 };
 
