@@ -436,12 +436,12 @@ export default function InventarioView({ vista, onNavigate }: InventarioViewProp
                                 <ArrowUpCircleIcon className="h-4 w-4" /> Venta
                               </span>
                             ) : principal.tipo === 'ENTRADA' ? (
-                              <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-400">
-                                <ArrowDownCircleIcon className={`h-4 w-4 ${principal.motivo_tipo === 'OTRO' ? 'text-blue-400' : ''}`} /> {MOTIVOS[principal.motivo_tipo] || 'Entrada'}
+                              <span className={`inline-flex items-center gap-1 text-xs font-bold ${principal.motivo_tipo === 'OTRO' ? 'text-blue-800' : 'text-emerald-400'}`}>
+                                <ArrowDownCircleIcon className="h-4 w-4" /> {MOTIVOS[principal.motivo_tipo] || 'Entrada'}
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 text-xs font-bold text-red-400">
-                                <ArrowUpCircleIcon className={`h-4 w-4 ${principal.motivo_tipo === 'OTRO' ? 'text-blue-400' : ''}`} /> {MOTIVOS[principal.motivo_tipo] || 'Salida'}
+                              <span className={`inline-flex items-center gap-1 text-xs font-bold ${principal.motivo_tipo === 'OTRO' ? 'text-blue-800' : 'text-red-400'}`}>
+                                <ArrowUpCircleIcon className="h-4 w-4" /> {MOTIVOS[principal.motivo_tipo] || 'Salida'}
                               </span>
                             )}
                             {principal.motivo_tipo === 'OTRO' && principal.motivo && (
