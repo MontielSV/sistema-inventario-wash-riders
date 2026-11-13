@@ -444,6 +444,11 @@ export default function InventarioView({ vista, onNavigate }: InventarioViewProp
                                 <ArrowUpCircleIcon className="h-4 w-4" /> {MOTIVOS[principal.motivo_tipo] || 'Salida'}
                               </span>
                             )}
+                            {principal.motivo_tipo === 'OTRO' && principal.motivo && (
+                              <span className="mt-1 block max-w-56 text-xs font-normal leading-5 text-slate-400">
+                                {principal.motivo}
+                              </span>
+                            )}
                           </td>
                           <td className="p-3 align-top font-mono font-bold text-white">{unidades}</td>
                           <td className="p-3 align-top font-mono text-xs text-slate-300">
