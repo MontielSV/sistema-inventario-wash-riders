@@ -163,7 +163,7 @@ export default function Home() {
 
               {usuario.trim().toLowerCase() === 'admin' && (
                 <div>
-                  <label htmlFor="login-sistema" className={`mb-2 block text-sm font-semibold ${tema === 'dark' ? 'text-slate-200' : 'text-slate-700'}`}>Sistema</label>
+                  <label htmlFor="login-sistema" className={`mb-2 block text-sm font-semibold ${tema === 'dark' ? 'text-slate-200' : 'text-slate-700'}`}>Nombre</label>
                   <input
                     id="login-sistema"
                     type="text"
