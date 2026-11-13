@@ -161,6 +161,19 @@ export default function Home() {
                 </div>
               </div>
 
+              {usuario.trim().toLowerCase() === 'admin' && (
+                <div>
+                  <label htmlFor="login-sistema" className={`mb-2 block text-sm font-semibold ${tema === 'dark' ? 'text-slate-200' : 'text-slate-700'}`}>Sistema</label>
+                  <input
+                    id="login-sistema"
+                    type="text"
+                    value="Wash Riders"
+                    readOnly
+                    className={`w-full rounded-lg border px-4 py-3 text-sm ${tema === 'dark' ? 'border-slate-600 bg-[#0b1c2d] text-slate-100' : 'border-blue-200 bg-[#eaf4ff] text-slate-900'}`}
+                  />
+                </div>
+              )}
+
               <button
                 type="submit"
                 disabled={cargandoLogin}
