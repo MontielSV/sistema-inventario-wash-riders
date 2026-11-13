@@ -13,6 +13,7 @@ import {
   ArrowRightOnRectangleIcon,
   MoonIcon,
   SunIcon,
+  QuestionMarkCircleIcon,
 } from '@heroicons/react/24/outline';
 
 interface SidebarProps {
@@ -21,9 +22,10 @@ interface SidebarProps {
   onLogout: () => void;
   tema: 'light' | 'dark';
   onToggleTheme: () => void;
+  onOpenGuide: () => void;
 }
 
-export default function Sidebar({ vistaActiva, setVistaActiva, onLogout, tema, onToggleTheme }: SidebarProps) {
+export default function Sidebar({ vistaActiva, setVistaActiva, onLogout, tema, onToggleTheme, onOpenGuide }: SidebarProps) {
   const [confirmarCierre, setConfirmarCierre] = useState(false);
   const dialogoCierreRef = useRef<HTMLDialogElement>(null);
 
@@ -89,11 +91,19 @@ export default function Sidebar({ vistaActiva, setVistaActiva, onLogout, tema, o
           </nav>
         </div>
 
-        <div className="flex justify-end border-t border-white/15 pt-2 lg:border-0 lg:pt-0">
+        <div className="flex flex-col gap-2 border-t border-white/15 pt-2 lg:border-0 lg:pt-0">
+          <button
+            type="button"
+            onClick={onOpenGuide}
+            className="flex min-h-11 w-full items-center gap-2 rounded-lg border border-white/25 bg-white/10 px-3 text-xs font-bold text-white transition-colors hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-300 lg:gap-3 lg:px-4 lg:py-3"
+          >
+            <QuestionMarkCircleIcon aria-hidden="true" className="h-5 w-5 shrink-0 text-cyan-200" />
+            Guía rápida
+          </button>
           <button
             type="button"
             onClick={() => setConfirmarCierre(true)}
-            className="flex min-h-11 w-auto items-center gap-2 rounded-lg border border-red-200/30 bg-red-950/20 px-3 text-xs font-bold uppercase text-red-100 transition-colors hover:bg-red-950/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-200 lg:w-full lg:gap-3 lg:px-4 lg:py-3"
+            className="flex min-h-11 w-full items-center gap-2 rounded-lg border border-red-200/30 bg-red-950/20 px-3 text-xs font-bold uppercase text-red-100 transition-colors hover:bg-red-950/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-200 lg:gap-3 lg:px-4 lg:py-3"
           >
             <ArrowRightOnRectangleIcon className="h-5 w-5 shrink-0" />
             Cerrar sesión

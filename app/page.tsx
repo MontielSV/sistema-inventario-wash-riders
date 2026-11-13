@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Sidebar from './components/Sidebar';
+import GuideTour from './components/GuideTour';
 import DashboardView from './components/admin/DashboardView';
 import ProductosView from './components/admin/ProductosView';
 import InventarioView from './components/admin/InventarioView';
@@ -14,6 +15,8 @@ export default function Home() {
   const [autenticado, setAutenticado] = useState(false);
   const [cargandoSesion, setCargandoSesion] = useState(true);
   const [vistaActiva, setVistaActiva] = useState('dashboard');
+  const [guiaAbierta, setGuiaAbierta] = useState(false);
+  const [versionGuia, setVersionGuia] = useState(0);
   const [tema, setTema] = useState<Tema>('light');
   
   // Estados para el login
@@ -35,10 +38,22 @@ export default function Home() {
     if (temaGuardado === 'light' || temaGuardado === 'dark') setTema(temaGuardado);
   }, []);
 
+  useEffect(() => {
+    if (autenticado && window.localStorage.getItem('wash-riders-guide-completed') !== 'true') {
+      setGuiaAbierta(true);
+    }
+  }, [autenticado]);
+
   const cambiarTema = () => {
     const nuevoTema = tema === 'light' ? 'dark' : 'light';
     setTema(nuevoTema);
     window.localStorage.setItem('wash-riders-theme', nuevoTema);
+  };
+
+  const abrirGuia = () => {
+    setVistaActiva('dashboard');
+    setVersionGuia((version) => version + 1);
+    setGuiaAbierta(true);
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -211,6 +226,14 @@ export default function Home() {
         onLogout={handleLogout} 
         tema={tema}
         onToggleTheme={cambiarTema}
+        onOpenGuide={abrirGuia}
+      />
+      <GuideTour
+        key={versionGuia}
+        abierta={guiaAbierta}
+        setVistaActiva={setVistaActiva}
+        tema={tema}
+        onClose={() => setGuiaAbierta(false)}
       />
       <main className="flex min-w-0 flex-1 flex-col">
         <div className="min-h-screen flex-1">
