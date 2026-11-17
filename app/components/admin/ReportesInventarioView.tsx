@@ -268,7 +268,7 @@ export default function ReportesInventarioView({ modo }: ReportesInventarioViewP
       <div className="mx-auto max-w-7xl space-y-6">
         <SectionHeader
           accent={modo === 'diario' ? 'teal' : 'violet'}
-          title={modo === 'diario' ? '' : 'Mensual'}
+          title={modo === 'diario' ? 'Reporte Diario' : 'Mensual'}
           description={modo === 'diario'
             ? 'Consulta las ventas y compras de una fecha.'
             : 'Analiza ventas, productos y actividad durante el mes.'}
