@@ -295,7 +295,8 @@ export default function ProductosView() {
                 </tr>
               ) : (
                 filtrados.map((p) => {
-                  const reponer = Number(p.stock_actual) <= Number(p.stock_minimo);
+                  const sinExistencias = Number(p.stock_actual) <= 0;
+                  const reponer = !sinExistencias && Number(p.stock_actual) <= Number(p.stock_minimo);
                   return (
                     <tr key={p.id} className="transition-colors hover:bg-blue-50/50">
                       <td className="flex items-center gap-3 px-4 py-3 font-semibold">
@@ -312,9 +313,13 @@ export default function ProductosView() {
                       <td className="px-4 py-3 font-mono text-slate-500">{p.stock_minimo} unidades</td>
                       <td className="px-4 py-3">
                         <span className={`rounded-md border px-2 py-1 text-[10px] font-bold uppercase ${
-                          reponer ? 'border-amber-200 bg-amber-50 text-amber-800' : 'border-blue-200 bg-blue-50 text-blue-800'
+                          sinExistencias
+                            ? 'border-rose-200 bg-rose-50 text-rose-800'
+                            : reponer
+                              ? 'border-amber-200 bg-amber-50 text-amber-800'
+                              : 'border-blue-200 bg-blue-50 text-blue-800'
                         }`}>
-                          {reponer ? 'Reponer' : 'Disponible'}
+                          {sinExistencias ? 'No disponible' : reponer ? 'Reponer' : 'Disponible'}
                         </span>
                       </td>
                       <td className="px-4 py-3">

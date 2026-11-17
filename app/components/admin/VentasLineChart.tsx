@@ -39,7 +39,6 @@ export default function VentasLineChart({ puntos, descripcion }: VentasLineChart
   const area = posiciones.length
     ? `${posiciones[0].x},${abajo} ${linea} ${posiciones[posiciones.length - 1].x},${abajo}`
     : '';
-  const intervaloEtiqueta = Math.max(1, Math.ceil(puntos.length / 7));
   const anchoPanel = 190;
   const altoPanel = 56;
   const puntoSeleccionado = puntoActivo === null ? null : posiciones[puntoActivo];
@@ -74,7 +73,6 @@ export default function VentasLineChart({ puntos, descripcion }: VentasLineChart
         {area && <polygon points={area} fill="#3987c4" fillOpacity="0.10" />}
         {linea && <polyline points={linea} fill="none" stroke="#28699e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />}
         {posiciones.map((punto, indice) => {
-          const mostrarEtiqueta = indice === 0 || indice === posiciones.length - 1 || indice % intervaloEtiqueta === 0;
           const detalle = punto.detalle || `${punto.etiqueta}: $${punto.valor.toLocaleString('es-CO')} COP`;
           return (
             <g key={`${punto.etiqueta}-${indice}`}>
@@ -93,7 +91,7 @@ export default function VentasLineChart({ puntos, descripcion }: VentasLineChart
                 onBlur={() => setPuntoActivo(null)}
               />
               <circle cx={punto.x} cy={punto.y} r="3.5" fill="#fff" stroke="#28699e" strokeWidth="2" vectorEffect="non-scaling-stroke" pointerEvents="none" />
-              {mostrarEtiqueta && <text x={punto.x} y={alto - 13} textAnchor="middle" fill="#64748b" fontSize="10" pointerEvents="none">{punto.etiqueta}</text>}
+              <text x={punto.x} y={alto - 13} textAnchor="middle" fill="#64748b" fontSize="10" pointerEvents="none">{punto.etiqueta}</text>
             </g>
           );
         })}
