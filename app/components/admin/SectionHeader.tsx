@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
 interface SectionHeaderProps {
-  title: string;
+  title?: string;
   description: string;
   icon: ReactNode;
   accent?: 'blue' | 'cyan' | 'emerald' | 'red' | 'amber' | 'sky' | 'teal' | 'violet';
@@ -61,16 +61,21 @@ export default function SectionHeader({
   children,
 }: SectionHeaderProps) {
   const colors = accentStyles[accent];
+  const displayTitle = title?.trim();
 
   return (
     <header className={`flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-end sm:justify-between ${className}`}>
       <div>
-        <p className={`text-xs font-bold uppercase tracking-widest ${colors.eyebrow}`}>Wash Riders - {title}</p>
+        {displayTitle && (
+          <p className={`text-xs font-bold uppercase tracking-widest ${colors.eyebrow}`}>Wash Riders - {displayTitle}</p>
+        )}
         <div className="mt-2 flex items-center gap-3">
           <span aria-hidden="true" className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border [&_svg]:h-6 [&_svg]:w-6 [&_svg]:stroke-[2] ${colors.icon}`}>
             {icon}
           </span>
-          <h1 className={`text-3xl font-black tracking-tight sm:text-4xl ${colors.title}`}>{title}</h1>
+          {displayTitle && (
+            <h1 className={`text-3xl font-black tracking-tight sm:text-4xl ${colors.title}`}>{displayTitle}</h1>
+          )}
         </div>
         <p className="mt-2 text-sm text-slate-500">{description}</p>
       </div>
