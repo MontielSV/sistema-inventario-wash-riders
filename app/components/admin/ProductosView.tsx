@@ -312,7 +312,7 @@ export default function ProductosView() {
                       <td className="px-4 py-3 font-mono font-bold text-slate-900">{p.stock_actual}</td>
                       <td className="px-4 py-3 font-mono text-slate-500">{p.stock_minimo} unidades</td>
                       <td className="px-4 py-3">
-                        <span className={`rounded-md border px-2 py-1 text-[10px] font-bold uppercase ${
+                        <span className={`whitespace-nowrap rounded-md border px-1.5 py-1 text-[9px] font-bold uppercase ${
                           sinExistencias
                             ? 'border-rose-200 bg-rose-50 text-rose-800'
                             : reponer

@@ -419,6 +419,9 @@ export default function InventarioView({ vista, onNavigate }: InventarioViewProp
                         (total, item) => total + Number(item.cantidad) * Number(item.precio_unitario),
                         0,
                       );
+                      const mostrarMotivo = Boolean(principal.motivo) && (
+                        principal.motivo_tipo === 'OTRO' || principal.motivo !== MOTIVOS[principal.motivo_tipo]
+                      );
                       return (
                         <tr key={clave} className="hover:bg-white/5 transition-all">
                           <td className="p-3 pl-4 align-top">
@@ -444,8 +447,8 @@ export default function InventarioView({ vista, onNavigate }: InventarioViewProp
                                 <ArrowUpCircleIcon className="h-4 w-4" /> {MOTIVOS[principal.motivo_tipo] || 'Salida'}
                               </span>
                             )}
-                            {principal.motivo_tipo === 'OTRO' && principal.motivo && (
-                              <span className="mt-1 block max-w-56 text-xs font-normal leading-5 text-slate-400">
+                            {mostrarMotivo && (
+                              <span className="mt-1 block max-w-56 break-words text-xs font-normal leading-5 text-slate-400">
                                 {principal.motivo}
                               </span>
                             )}
