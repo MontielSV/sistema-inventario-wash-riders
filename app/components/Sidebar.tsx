@@ -40,7 +40,7 @@ export default function Sidebar({ vistaActiva, setVistaActiva, onLogout, tema, o
     { id: 'ventas', nombre: 'Registrar venta', icono: ShoppingCartIcon, tono: 'text-emerald-300' },
     { id: 'registrar-movimiento', nombre: 'Registrar movimiento', icono: ArrowsRightLeftIcon, tono: 'text-blue-200' },
     { id: 'historial', nombre: 'Historial', icono: ShoppingBagIcon, tono: 'text-amber-300' },
-    { id: 'reporte-ventas', nombre: 'Reporte de ventas', icono: CurrencyDollarIcon, tono: 'text-teal-300' },
+    { id: 'reporte-ventas', nombre: 'Reporte Diario', icono: CurrencyDollarIcon, tono: 'text-teal-300' },
     { id: 'pdf', nombre: 'Reporte mensual', icono: ChartBarIcon, tono: 'text-violet-300' },
   ];
 

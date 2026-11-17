@@ -44,7 +44,7 @@ const pasos = [
   {
     vista: 'reporte-ventas',
     titulo: 'Revisa tus resultados',
-    descripcion: 'En Reporte de ventas consulta el resumen diario de las operaciones registradas.',
+    descripcion: 'En Reporte Diario consulta el resumen diario de las operaciones registradas.',
     consejo: 'Usa este resumen para revisar cómo va el día.',
   },
   {
