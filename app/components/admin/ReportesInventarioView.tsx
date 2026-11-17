@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import {
+  BanknotesIcon,
   CalendarDaysIcon,
   ChartBarIcon,
   MagnifyingGlassIcon,
@@ -195,7 +196,6 @@ export default function ReportesInventarioView({ modo }: ReportesInventarioViewP
   const totalPeriodo = ventasAgrupadas.reduce((total, venta) => total + venta.total, 0);
   const unidadesPeriodo = ventasAgrupadas.reduce((total, venta) => total + venta.unidades, 0);
   const totalComprado = comprasAgrupadas.reduce((total, compra) => total + compra.total, 0);
-  const unidadesCompradas = comprasAgrupadas.reduce((total, compra) => total + compra.unidades, 0);
   const diasConVentas = new Set(ventasAgrupadas.map((venta) => fechaLocal(venta.fecha))).size;
 
   const productosVendidos = new Map<string, { codigo: string; nombre: string; unidades: number }>();
@@ -311,17 +311,34 @@ export default function ReportesInventarioView({ modo }: ReportesInventarioViewP
         {error && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">{error}</p>}
         {cargando && <p role="status" className="text-sm text-slate-500 print:hidden">Cargando movimientos...</p>}
 
-        <section className={`grid grid-cols-1 gap-3 sm:grid-cols-2 ${modo === 'diario' ? 'xl:grid-cols-3' : 'xl:grid-cols-5'}`}>
-          <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"><p className="text-xs font-bold uppercase text-slate-500">Total vendido</p><p className="mt-2 text-2xl font-black text-blue-900">{formatoMoneda(totalPeriodo)}</p><p className="mt-1 text-xs capitalize text-slate-500">{modo === 'diario' ? new Date(`${fecha}T12:00:00`).toLocaleDateString('es-CO', { dateStyle: 'long' }) : new Date(`${mes}-01T12:00:00`).toLocaleDateString('es-CO', { month: 'long', year: 'numeric' })}</p></article>
-          <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"><p className="text-xs font-bold uppercase text-slate-500">Ventas registradas</p><p className="mt-2 text-2xl font-black">{ventasAgrupadas.length}</p><p className="mt-1 text-xs text-slate-500">Transacciones del periodo</p></article>
-          {modo === 'diario'
-            ? <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"><p className="text-xs font-bold uppercase text-slate-500">Compras registradas</p><p className="mt-2 text-2xl font-black">{comprasAgrupadas.length}</p><p className="mt-1 text-xs text-slate-500">Transacciones del periodo</p></article>
-            : <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"><p className="text-xs font-bold uppercase text-slate-500">Unidades vendidas</p><p className="mt-2 text-2xl font-black">{unidadesPeriodo}</p><p className="mt-1 text-xs text-slate-500">En {ventasAgrupadas.length} operaciones</p></article>}
-          {modo === 'diario' && <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"><p className="text-xs font-bold uppercase text-slate-500">Total comprado</p><p className="mt-2 text-2xl font-black text-emerald-800">{formatoMoneda(totalComprado)}</p><p className="mt-1 text-xs capitalize text-slate-500">{new Date(`${fecha}T12:00:00`).toLocaleDateString('es-CO', { dateStyle: 'long' })}</p></article>}
-          {modo === 'diario' && <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"><p className="text-xs font-bold uppercase text-slate-500">Unidades compradas</p><p className="mt-2 text-2xl font-black">{unidadesCompradas}</p><p className="mt-1 text-xs text-slate-500">En {comprasAgrupadas.length} operaciones</p></article>}
-          {modo === 'mensual' && <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"><p className="text-xs font-bold uppercase text-slate-500">Días con actividad</p><p className="mt-2 text-2xl font-black">{diasConVentas}</p><p className="mt-1 text-xs text-slate-500">Días con al menos una venta</p></article>}
-          {modo === 'mensual' && <article className="rounded-lg border border-amber-200 bg-amber-50/60 p-5"><p className="text-xs font-bold uppercase text-amber-800">Productos sin ventas</p><p className="mt-2 text-2xl font-black text-amber-900">{productosSinVentas.length}</p><p className="mt-1 text-xs text-amber-800">Del catálogo activo en el periodo</p></article>}
-        </section>
+        {modo === 'diario' ? (
+          <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="flex items-center justify-between text-slate-500"><span className="text-xs font-bold uppercase">Total vendido</span><BanknotesIcon className="h-4 w-4 text-blue-700" /></div>
+              <p className="mt-2 text-xl font-black text-blue-900">{formatoMoneda(totalPeriodo)}</p>
+            </article>
+            <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="flex items-center justify-between text-slate-500"><span className="text-xs font-bold uppercase">Total comprado</span><BanknotesIcon className="h-4 w-4 text-emerald-700" /></div>
+              <p className="mt-2 text-xl font-black text-emerald-800">{formatoMoneda(totalComprado)}</p>
+            </article>
+            <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="flex items-center justify-between text-slate-500"><span className="text-xs font-bold uppercase">Ventas registradas</span><ChartBarIcon className="h-4 w-4 text-blue-700" /></div>
+              <p className="mt-2 text-2xl font-black text-slate-900">{ventasAgrupadas.length}</p>
+            </article>
+            <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="flex items-center justify-between text-slate-500"><span className="text-xs font-bold uppercase">Compras registradas</span><ChartBarIcon className="h-4 w-4 text-emerald-700" /></div>
+              <p className="mt-2 text-2xl font-black text-slate-900">{comprasAgrupadas.length}</p>
+            </article>
+          </section>
+        ) : (
+          <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
+            <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"><p className="text-xs font-bold uppercase text-slate-500">Total vendido</p><p className="mt-2 text-2xl font-black text-blue-900">{formatoMoneda(totalPeriodo)}</p><p className="mt-1 text-xs capitalize text-slate-500">{new Date(`${mes}-01T12:00:00`).toLocaleDateString('es-CO', { month: 'long', year: 'numeric' })}</p></article>
+            <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"><p className="text-xs font-bold uppercase text-slate-500">Ventas registradas</p><p className="mt-2 text-2xl font-black">{ventasAgrupadas.length}</p><p className="mt-1 text-xs text-slate-500">Transacciones del periodo</p></article>
+            <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"><p className="text-xs font-bold uppercase text-slate-500">Unidades vendidas</p><p className="mt-2 text-2xl font-black">{unidadesPeriodo}</p><p className="mt-1 text-xs text-slate-500">En {ventasAgrupadas.length} operaciones</p></article>
+            <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"><p className="text-xs font-bold uppercase text-slate-500">Días con actividad</p><p className="mt-2 text-2xl font-black">{diasConVentas}</p><p className="mt-1 text-xs text-slate-500">Días con al menos una venta</p></article>
+            <article className="rounded-lg border border-amber-200 bg-amber-50/60 p-5"><p className="text-xs font-bold uppercase text-amber-800">Productos sin ventas</p><p className="mt-2 text-2xl font-black text-amber-900">{productosSinVentas.length}</p><p className="mt-1 text-xs text-amber-800">Del catálogo activo en el periodo</p></article>
+          </section>
+        )}
 
         {modo === 'mensual' && (
           <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
