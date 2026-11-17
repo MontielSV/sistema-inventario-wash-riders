@@ -116,6 +116,10 @@ html, body {
   color: #b42318 !important;
 }
 
+.inventory-light [class~="text-orange-400"] {
+  color: #c2410c !important;
+}
+
 .inventory-light [class~="bg-white/5"],
 .inventory-light [class~="bg-white/[0.03]"],
 .inventory-light [class~="bg-white/[0.02]"] {
@@ -379,6 +383,10 @@ html, body {
 .app-theme-dark .inventory-light [class~="text-red-300"],
 .app-theme-dark .inventory-light [class~="text-red-400"] {
   color: #fca5a5 !important;
+}
+
+.app-theme-dark .inventory-light [class~="text-orange-400"] {
+  color: #fdba74 !important;
 }
 
 .app-theme-dark .inventory-light [class~="bg-white/5"],

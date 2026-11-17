@@ -422,6 +422,17 @@ export default function InventarioView({ vista, onNavigate }: InventarioViewProp
                       const mostrarMotivo = Boolean(principal.motivo) && (
                         principal.motivo_tipo === 'OTRO' || principal.motivo !== MOTIVOS[principal.motivo_tipo]
                       );
+                      const colorMotivo = esVenta
+                        ? 'text-emerald-400'
+                        : principal.motivo_tipo === 'COMPRA'
+                          ? 'text-red-400'
+                          : principal.motivo_tipo === 'OTRO'
+                            ? 'text-sky-400'
+                            : principal.motivo_tipo === 'DANO'
+                              ? 'text-orange-400'
+                              : principal.tipo === 'ENTRADA'
+                                ? 'text-emerald-400'
+                                : 'text-red-400';
                       return (
                         <tr key={clave} className="hover:bg-white/5 transition-all">
                           <td className="p-3 pl-4 align-top">
@@ -434,19 +445,12 @@ export default function InventarioView({ vista, onNavigate }: InventarioViewProp
                             {grupo.length} {grupo.length === 1 ? 'producto' : 'productos'}
                           </td>
                           <td className="p-3 align-top">
-                            {esVenta ? (
-                              <span className="inline-flex items-center gap-1 text-xs font-bold text-red-400">
-                                <ArrowUpCircleIcon className="h-4 w-4" /> Venta
-                              </span>
-                            ) : principal.tipo === 'ENTRADA' ? (
-                              <span className={`inline-flex items-center gap-1 text-xs font-bold ${principal.motivo_tipo === 'OTRO' ? 'text-blue-800' : 'text-emerald-400'}`}>
-                                <ArrowDownCircleIcon className="h-4 w-4" /> {MOTIVOS[principal.motivo_tipo] || 'Entrada'}
-                              </span>
-                            ) : (
-                              <span className={`inline-flex items-center gap-1 text-xs font-bold ${principal.motivo_tipo === 'OTRO' ? 'text-blue-800' : 'text-red-400'}`}>
-                                <ArrowUpCircleIcon className="h-4 w-4" /> {MOTIVOS[principal.motivo_tipo] || 'Salida'}
-                              </span>
-                            )}
+                            <span className={`inline-flex items-center gap-1 text-xs font-bold ${colorMotivo}`}>
+                              {principal.tipo === 'ENTRADA'
+                                ? <ArrowDownCircleIcon className="h-4 w-4" />
+                                : <ArrowUpCircleIcon className="h-4 w-4" />}
+                              {MOTIVOS[principal.motivo_tipo] || (principal.tipo === 'ENTRADA' ? 'Entrada' : 'Salida')}
+                            </span>
                             {mostrarMotivo && (
                               <span className="mt-1 block max-w-56 break-words text-xs font-normal leading-5 text-slate-400">
                                 {principal.motivo}
