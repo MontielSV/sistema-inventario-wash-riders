@@ -3,6 +3,7 @@ import type { PoolClient } from 'pg';
 import { isAuthenticated } from '@/lib/auth';
 import pool from '@/lib/db';
 import { ensureInventoryTables } from '@/lib/inventory-db';
+import { lockProductCodeAllocation } from '@/lib/product-code';
 import { WR_PRODUCT_NAMES } from '@/lib/wr-product-list';
 
 export const runtime = 'nodejs';
@@ -17,7 +18,7 @@ export async function POST(request: Request) {
     await ensureInventoryTables();
     client = await pool.connect();
     await client.query('BEGIN');
-    await client.query("SELECT pg_advisory_xact_lock(hashtext('wr-colombia-catalog-v1'))");
+    await lockProductCodeAllocation(client);
 
     let agregados = 0;
     let existentes = 0;

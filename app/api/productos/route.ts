@@ -1,8 +1,9 @@
-import { randomUUID } from 'node:crypto';
 import { NextResponse } from 'next/server';
+import type { PoolClient } from 'pg';
 import pool from '@/lib/db';
 import { isAuthenticated } from '@/lib/auth';
 import { ensureInventoryTables } from '@/lib/inventory-db';
+import { findAvailableProductCode, lockProductCodeAllocation } from '@/lib/product-code';
 
 export const runtime = 'nodejs';
 
@@ -31,6 +32,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
+  let client: PoolClient | undefined;
   try {
     const body = await request.json();
     const { nombre, categoria, stock_actual, stock_minimo, precio } = body;
@@ -52,21 +54,36 @@ export async function POST(request: Request) {
     }
 
     await ensureInventoryTables();
-    const codigo = `PRD-${randomUUID()}`;
-    const result = await pool.query(
+    client = await pool.connect();
+    await client.query('BEGIN');
+    await lockProductCodeAllocation(client);
+    const codigo = await findAvailableProductCode(client);
+    if (!codigo) {
+      await client.query('ROLLBACK');
+      return NextResponse.json(
+        { error: 'No quedan códigos disponibles en el formato WRC-001 a WRC-999' },
+        { status: 409 }
+      );
+    }
+
+    const result = await client.query(
       `INSERT INTO productos (codigo, nombre, categoria, stock_actual, stock_minimo, precio)
        VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
-      [codigo.trim(), nombre.trim(), categoria.trim(), stockActual, stockMinimo, precioProducto]
+      [codigo, nombre.trim(), categoria.trim(), stockActual, stockMinimo, precioProducto]
     );
 
+    await client.query('COMMIT');
     return NextResponse.json(result.rows[0], { status: 201 });
   } catch (error) {
+    if (client) await client.query('ROLLBACK');
     console.error('Error al insertar producto:', error);
     return NextResponse.json(
       { error: 'No se pudo guardar el producto en la base de datos' },
       { status: 500 }
     );
+  } finally {
+    client?.release();
   }
 }
 

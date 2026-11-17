@@ -186,7 +186,7 @@ Los días del tablero se calculan con la hora local del navegador. Para que las 
 
 Reglas observables en la API:
 
-- El nombre es obligatorio y el código se asigna automáticamente al crear el producto; al editar, el código existente se puede modificar y debe ser único.
+- El nombre es obligatorio y el código se asigna automáticamente al primer número disponible con formato `WRC-001` a `WRC-999`; al editar, el código existente se puede modificar y debe ser único.
 - El precio es obligatorio y debe ser mayor que cero al crear un producto. En ediciones, el precio y las cantidades no pueden ser negativos.
 - Las cantidades deben ser enteras; el precio puede tener decimales.
 - La categoría se guarda como `General` desde el formulario actual.
