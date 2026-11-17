@@ -243,7 +243,6 @@ export default function Home() {
           {(vistaActiva === 'registrar-movimiento' || vistaActiva === 'historial') && (
             <InventarioView
               vista={vistaActiva === 'historial' ? 'historial' : 'registrar'}
-              onNavigate={setVistaActiva}
             />
           )}
           {vistaActiva === 'reporte-ventas' && <ReportesInventarioView modo="diario" />}

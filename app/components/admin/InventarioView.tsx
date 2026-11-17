@@ -37,7 +37,6 @@ interface Movimiento {
 
 interface InventarioViewProps {
   vista: 'historial' | 'registrar';
-  onNavigate: (vista: string) => void;
 }
 
 const MOTIVOS: Record<string, string> = {
@@ -62,7 +61,7 @@ const toLocalDateTimeInput = (value: string) => {
   return date.toISOString().slice(0, 16);
 };
 
-export default function InventarioView({ vista, onNavigate }: InventarioViewProps) {
+export default function InventarioView({ vista }: InventarioViewProps) {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -106,12 +105,6 @@ export default function InventarioView({ vista, onNavigate }: InventarioViewProp
   useEffect(() => {
     cargarDatos();
   }, []);
-
-  useEffect(() => {
-    if (vista === 'registrar' && movimientoEditando) {
-      document.getElementById('form-movimiento')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, [vista, movimientoEditando]);
 
   const handleRegistrarMovimiento = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -197,6 +190,11 @@ export default function InventarioView({ vista, onNavigate }: InventarioViewProp
     grupos.set(clave, grupo);
     return grupos;
   }, new Map<string, Movimiento[]>());
+  const editarDesdeHistorial = vista === 'historial' && movimientoEditando !== null;
+  const claseCampo = editarDesdeHistorial
+    ? 'w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100'
+    : 'w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-[#E50914]';
+  const claseEtiqueta = 'block text-xs font-bold text-slate-400 uppercase mb-1';
 
   return (
     <div className="inventory-light min-h-screen bg-[#030303] p-4 font-sans text-white md:p-8">
@@ -235,28 +233,47 @@ export default function InventarioView({ vista, onNavigate }: InventarioViewProp
         <div className={vista === 'registrar' ? 'mx-auto max-w-3xl' : ''}>
           
           {/* Formulario de Registro */}
-          <div id="form-movimiento" className={`${vista === 'historial' ? 'hidden' : ''} bg-[#0f0f0f]/95 p-6 rounded-[2rem] border border-white/10 shadow-2xl h-fit space-y-6`}>
-            <div className="flex items-center justify-between border-b border-white/5 pb-4">
-              <h2 className="text-xl font-bold text-white">{movimientoEditando ? 'Editar Movimiento' : 'Registrar Movimiento'}</h2>
+          {(vista === 'registrar' || editarDesdeHistorial) && (
+          <div
+            id="form-movimiento"
+            className={editarDesdeHistorial
+              ? 'fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm'
+              : 'bg-[#0f0f0f]/95 p-6 rounded-[2rem] border border-white/10 shadow-2xl h-fit space-y-6'}
+            onClick={editarDesdeHistorial ? (event) => {
+              if (event.target === event.currentTarget) limpiarFormulario();
+            } : undefined}
+          >
+          <div
+            role={editarDesdeHistorial ? 'dialog' : undefined}
+            aria-modal={editarDesdeHistorial ? true : undefined}
+            aria-labelledby={editarDesdeHistorial ? 'form-movimiento-titulo' : undefined}
+            onClick={editarDesdeHistorial ? (event) => event.stopPropagation() : undefined}
+            className={editarDesdeHistorial
+              ? 'relative max-h-[calc(100vh-2rem)] w-full max-w-md space-y-5 overflow-y-auto rounded-xl border border-slate-200 bg-white p-6 text-slate-900 shadow-2xl'
+              : 'space-y-6'}
+          >
+            <div className={`flex items-center justify-between border-b pb-4 ${editarDesdeHistorial ? 'border-slate-200' : 'border-white/5'}`}>
+              <h2 id="form-movimiento-titulo" className={editarDesdeHistorial ? 'text-lg font-bold text-slate-900' : 'text-xl font-bold text-white'}>{movimientoEditando ? 'Editar Movimiento' : 'Registrar Movimiento'}</h2>
               {movimientoEditando && (
                 <button
                   type="button"
                   onClick={limpiarFormulario}
-                  className="inline-flex items-center gap-1 text-xs font-bold text-slate-400 hover:text-white"
+                  aria-label={editarDesdeHistorial ? 'Cerrar edición' : undefined}
+                  className={`inline-flex items-center gap-1 text-xs font-bold ${editarDesdeHistorial ? 'text-slate-400 hover:text-slate-900' : 'text-slate-400 hover:text-white'}`}
                 >
-                  <XMarkIcon className="w-4 h-4" /> Cancelar
+                  <XMarkIcon className="w-4 h-4" />{editarDesdeHistorial ? null : ' Cancelar'}
                 </button>
               )}
             </div>
             
             <form onSubmit={handleRegistrarMovimiento} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Producto</label>
+                <label className={claseEtiqueta}>Producto</label>
                 <select
                   required
                   value={productoId}
                   onChange={(e) => setProductoId(Number(e.target.value))}
-                  className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-[#E50914]"
+                  className={claseCampo}
                 >
                   <option value="">-- Seleccionar Producto --</option>
                   {productos.map((p) => (
@@ -268,15 +285,19 @@ export default function InventarioView({ vista, onNavigate }: InventarioViewProp
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Tipo de Operación</label>
+                <label className={claseEtiqueta}>Tipo de Operación</label>
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
                     onClick={() => { setTipo('ENTRADA'); setMotivoTipo('COMPRA'); }}
                     className={`py-2.5 rounded-xl font-bold text-xs uppercase flex items-center justify-center gap-2 border transition-all ${
-                      tipo === 'ENTRADA'
-                        ? 'bg-emerald-950/80 border-emerald-500 text-emerald-400 shadow-lg'
-                        : 'bg-black/40 border-white/10 text-slate-400'
+                      editarDesdeHistorial
+                        ? tipo === 'ENTRADA'
+                          ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm'
+                          : 'bg-white border-slate-200 text-slate-500'
+                        : tipo === 'ENTRADA'
+                          ? 'bg-emerald-950/80 border-emerald-500 text-emerald-400 shadow-lg'
+                          : 'bg-black/40 border-white/10 text-slate-400'
                     }`}
                   >
                     <ArrowDownCircleIcon className="w-4 h-4" /> Entrada
@@ -285,9 +306,13 @@ export default function InventarioView({ vista, onNavigate }: InventarioViewProp
                     type="button"
                     onClick={() => { setTipo('SALIDA'); setMotivoTipo('VENTA'); }}
                     className={`py-2.5 rounded-xl font-bold text-xs uppercase flex items-center justify-center gap-2 border transition-all ${
-                      tipo === 'SALIDA'
-                        ? 'bg-red-950/80 border-red-500 text-red-400 shadow-lg'
-                        : 'bg-black/40 border-white/10 text-slate-400'
+                      editarDesdeHistorial
+                        ? tipo === 'SALIDA'
+                          ? 'bg-red-50 border-red-500 text-red-700 shadow-sm'
+                          : 'bg-white border-slate-200 text-slate-500'
+                        : tipo === 'SALIDA'
+                          ? 'bg-red-950/80 border-red-500 text-red-400 shadow-lg'
+                          : 'bg-black/40 border-white/10 text-slate-400'
                     }`}
                   >
                     <ArrowUpCircleIcon className="w-4 h-4" /> Salida
@@ -296,12 +321,12 @@ export default function InventarioView({ vista, onNavigate }: InventarioViewProp
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Motivo del movimiento</label>
+                <label className={claseEtiqueta}>Motivo del movimiento</label>
                 <select
                   required
                   value={motivoTipo}
                   onChange={(event) => setMotivoTipo(event.target.value)}
-                  className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-[#E50914]"
+                  className={claseCampo}
                 >
                   {(tipo === 'ENTRADA' ? ['COMPRA', 'AJUSTE', 'OTRO'] : ['VENTA', 'USO_INTERNO', 'DANO', 'DONACION', 'AJUSTE', 'OTRO'])
                     .map((opcion) => <option key={opcion} value={opcion}>{MOTIVOS[opcion]}</option>)}
@@ -309,48 +334,70 @@ export default function InventarioView({ vista, onNavigate }: InventarioViewProp
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Cantidad</label>
+                <label className={claseEtiqueta}>Cantidad</label>
                 <input
                   type="number"
                   required
                   min="1"
                   value={cantidad}
                   onChange={(e) => setCantidad(Number(e.target.value))}
-                  className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-[#E50914]"
+                  className={claseCampo}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Fecha</label>
+                <label className={claseEtiqueta}>Fecha</label>
                 <input
                   type="datetime-local"
                   required
                   value={fecha}
                   onChange={(e) => setFecha(e.target.value)}
-                  className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-[#E50914]"
+                  className={claseCampo}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Nota / Observación</label>
+                <label className={claseEtiqueta}>Nota / Observación</label>
                 <input
                   type="text"
                   placeholder="Ej: Compra a proveedor / Baja"
                   value={motivo}
                   onChange={(e) => setMotivo(e.target.value)}
-                  className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-[#E50914]"
+                  className={claseCampo}
                 />
               </div>
 
-              <button
-                type="submit"
-                disabled={procesando}
-                className="w-full bg-[#E50914] hover:bg-red-700 text-white font-black py-3 rounded-xl text-xs uppercase tracking-wider transition-all shadow-lg active:scale-95"
-              >
-                {procesando ? 'Guardando...' : movimientoEditando ? 'Guardar Cambios' : 'Aplicar Movimiento'}
-              </button>
+              {editarDesdeHistorial ? (
+                <div className="flex gap-3 border-t border-slate-200 pt-4">
+                  <button
+                    type="button"
+                    disabled={procesando}
+                    onClick={limpiarFormulario}
+                    className="flex-1 rounded-lg border border-slate-200 bg-white py-2.5 text-xs font-bold uppercase text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={procesando}
+                    className="flex-1 rounded-lg bg-[#1f5a8a] py-2.5 text-xs font-bold uppercase tracking-wide text-white transition-colors hover:bg-[#174a74] disabled:opacity-50"
+                  >
+                    {procesando ? 'Guardando...' : 'Guardar Cambios'}
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={procesando}
+                  className="w-full bg-[#E50914] hover:bg-red-700 text-white font-black py-3 rounded-xl text-xs uppercase tracking-wider transition-all shadow-lg active:scale-95"
+                >
+                  {procesando ? 'Guardando...' : movimientoEditando ? 'Guardar Cambios' : 'Aplicar Movimiento'}
+                </button>
+              )}
             </form>
           </div>
+          </div>
+          )}
 
           {/* Historial de Movimientos */}
           <div className={`${vista === 'registrar' ? 'hidden' : ''} bg-[#0f0f0f]/95 rounded-[2rem] border border-white/10 overflow-hidden shadow-2xl p-6 space-y-4`}>
@@ -398,16 +445,16 @@ export default function InventarioView({ vista, onNavigate }: InventarioViewProp
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full min-w-[900px] table-fixed text-left border-collapse">
                   <thead>
                     <tr className="border-b border-white/10 text-xs text-slate-400 uppercase tracking-wider bg-black/40">
-                      <th className="p-3 pl-4">Fecha</th>
-                      <th className="p-3">Seguimiento</th>
-                      <th className="p-3">Productos</th>
-                      <th className="p-3">Tipo / Motivo</th>
-                      <th className="p-3">Unidades</th>
-                      <th className="p-3">Total</th>
-                      <th className="p-3 text-right">Detalle / acciones</th>
+                      <th className="w-[14%] p-3 pl-4">Fecha</th>
+                      <th className="w-[18%] p-3">Seguimiento</th>
+                      <th className="w-[12%] p-3">Productos</th>
+                      <th className="w-[20%] p-3">Tipo / Motivo</th>
+                      <th className="w-[8%] p-3">Unidades</th>
+                      <th className="w-[13%] p-3">Total</th>
+                      <th className="w-[15%] p-3 text-right">Detalle / acciones</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5 text-sm">
@@ -440,7 +487,7 @@ export default function InventarioView({ vista, onNavigate }: InventarioViewProp
                               {new Date(principal.fecha).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}
                             </span>
                           </td>
-                          <td className="p-3 align-top font-mono text-[10px] text-emerald-300">{principal.codigo_seguimiento || '-'}</td>
+                          <td className="break-all p-3 align-top font-mono text-[10px] text-emerald-300">{principal.codigo_seguimiento || '-'}</td>
                           <td className="p-3 align-top font-semibold text-slate-800">
                             {grupo.length} {grupo.length === 1 ? 'producto' : 'productos'}
                           </td>
@@ -496,7 +543,6 @@ export default function InventarioView({ vista, onNavigate }: InventarioViewProp
                                   setCantidad(Number(principal.cantidad));
                                   setMotivo(principal.motivo || '');
                                   setFecha(toLocalDateTimeInput(principal.fecha));
-                                  onNavigate('registrar-movimiento');
                                 }}
                                 className="rounded-md border border-white/10 p-2 text-slate-300 transition-colors hover:border-[#E50914]/50 hover:text-white"
                               >
