@@ -180,14 +180,14 @@ Los días del tablero se calculan con la hora local del navegador. Para que las 
 1. Abra **Productos**.
 2. Use el buscador por nombre o código para localizar un artículo.
 3. Seleccione **Nuevo producto** para crear un registro.
-4. Complete código, nombre, precio, existencias iniciales y stock mínimo.
+4. Complete nombre, precio, existencias iniciales y stock mínimo. El sistema asigna el código automáticamente.
 5. Guarde el producto. Para modificarlo, use el botón de edición en la fila.
 6. Para retirarlo, use el botón de retiro y confirme la acción.
 
 Reglas observables en la API:
 
-- Código y nombre son obligatorios; el código no puede duplicarse, sin distinguir mayúsculas/minúsculas.
-- El precio y las cantidades no pueden ser negativos.
+- El nombre es obligatorio y el código se asigna automáticamente al crear el producto; al editar, el código existente se puede modificar y debe ser único.
+- El precio es obligatorio y debe ser mayor que cero al crear un producto. En ediciones, el precio y las cantidades no pueden ser negativos.
 - Las cantidades deben ser enteras; el precio puede tener decimales.
 - La categoría se guarda como `General` desde el formulario actual.
 - Retirar un producto lo oculta del catálogo activo, pero no borra el registro ni sus movimientos históricos.

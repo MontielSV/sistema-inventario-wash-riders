@@ -33,7 +33,7 @@ export default function ProductosView() {
   // Formulario
   const [codigo, setCodigo] = useState('');
   const [nombre, setNombre] = useState('');
-  const [precio, setPrecio] = useState('0');
+  const [precio, setPrecio] = useState('');
   const [stockActual, setStockActual] = useState('0');
   const [stockMinimo, setStockMinimo] = useState('4');
 
@@ -103,7 +103,7 @@ export default function ProductosView() {
       setEditando(null);
       setCodigo('');
       setNombre('');
-      setPrecio('0');
+      setPrecio('');
       setStockActual('0');
       setStockMinimo('4');
     }
@@ -117,7 +117,7 @@ export default function ProductosView() {
 
     const payload = {
       ...(editando ? { id: editando.id } : {}),
-      codigo: codigo.trim(),
+      ...(editando ? { codigo: codigo.trim() } : {}),
       nombre: nombre.trim(),
       categoria: 'General',
       precio: parseFloat(precio),
@@ -125,14 +125,14 @@ export default function ProductosView() {
       stock_minimo: parseInt(stockMinimo, 10),
     };
 
-    if (!payload.codigo || !payload.nombre) {
-      setErrorModal('El código y el nombre son obligatorios.');
+    if ((editando && !payload.codigo) || !payload.nombre) {
+      setErrorModal(editando ? 'El código y el nombre son obligatorios.' : 'El nombre es obligatorio.');
       setGuardando(false);
       return;
     }
 
-    if (isNaN(payload.precio) || payload.precio < 0) {
-      setErrorModal('El precio no puede ser negativo.');
+    if (!Number.isFinite(payload.precio) || payload.precio < 0 || (!editando && payload.precio <= 0)) {
+      setErrorModal(editando ? 'El precio no puede ser negativo.' : 'Ingresa un precio mayor que cero para crear el producto.');
       setGuardando(false);
       return;
     }
@@ -161,7 +161,7 @@ export default function ProductosView() {
         setMensajeExito(
           eraEdicion
             ? `Cambios guardados. Se actualizó el producto "${payload.nombre}".`
-            : `Producto "${payload.nombre}" creado correctamente.`
+            : `Producto "${payload.nombre}" creado correctamente. Código asignado: ${data.codigo}.`
         );
         void cargarProductos();
       } else {
@@ -367,16 +367,23 @@ export default function ProductosView() {
             )}
 
             <form onSubmit={handleGuardar} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Código (Único)</label>
-                <input
-                  type="text"
-                  required
-                  value={codigo}
-                  onChange={(e) => setCodigo(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-                />
-              </div>
+              {editando ? (
+                <div>
+                  <label className="mb-1 block text-xs font-bold uppercase text-slate-400">Código (Único)</label>
+                  <input
+                    type="text"
+                    required
+                    value={codigo}
+                    onChange={(e) => setCodigo(e.target.value)}
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                  />
+                </div>
+              ) : (
+                <div>
+                  <span className="mb-1 block text-xs font-bold uppercase text-slate-400">Código</span>
+                  <p className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500">Se asignará automáticamente al guardar</p>
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Nombre del Producto</label>
@@ -394,7 +401,7 @@ export default function ProductosView() {
                 <input
                   type="number"
                   step="0.01"
-                  min="0"
+                  min={editando ? '0' : '0.01'}
                   required
                   value={precio}
                   onChange={(e) => setPrecio(e.target.value)}

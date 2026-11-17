@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { isAuthenticated } from '@/lib/auth';
@@ -32,34 +33,26 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { codigo, nombre, categoria, stock_actual, stock_minimo, precio } = body;
+    const { nombre, categoria, stock_actual, stock_minimo, precio } = body;
     const stockActual = Number(stock_actual);
     const stockMinimo = Number(stock_minimo);
     const precioProducto = Number(precio);
 
     if (
-      typeof codigo !== 'string' || !codigo.trim() ||
       typeof nombre !== 'string' || !nombre.trim() ||
       typeof categoria !== 'string' || !categoria.trim() ||
       !Number.isInteger(stockActual) || stockActual < 0 ||
       !Number.isInteger(stockMinimo) || stockMinimo < 0 ||
-      !Number.isFinite(precioProducto) || precioProducto < 0
+      !Number.isFinite(precioProducto) || precioProducto <= 0
     ) {
       return NextResponse.json(
-        { error: 'Completa todos los campos con valores válidos y no negativos' },
+        { error: 'Completa los campos con valores válidos; el precio debe ser mayor que cero y las cantidades enteras no negativas' },
         { status: 400 }
       );
     }
 
     await ensureInventoryTables();
-    const duplicate = await pool.query(
-      'SELECT id FROM productos WHERE LOWER(codigo) = LOWER($1) LIMIT 1',
-      [codigo.trim()]
-    );
-    if (duplicate.rowCount) {
-      return NextResponse.json({ error: 'El código de producto ya está registrado' }, { status: 409 });
-    }
-
+    const codigo = `PRD-${randomUUID()}`;
     const result = await pool.query(
       `INSERT INTO productos (codigo, nombre, categoria, stock_actual, stock_minimo, precio)
        VALUES ($1, $2, $3, $4, $5, $6)
