@@ -157,10 +157,10 @@ export async function PUT(request: Request) {
     }
 
     const old = existing.rows[0];
-    if (old.motivo_tipo === 'VENTA' || old.transaccion_id) {
+    if (old.motivo_tipo === 'VENTA' || (old.transaccion_id && old.tipo !== 'ENTRADA')) {
       await client.query('ROLLBACK');
       return NextResponse.json(
-        { error: 'Las ventas agrupadas se conservan como una sola operación y no se editan desde movimientos manuales.' },
+        { error: 'Las ventas y salidas agrupadas se conservan como una sola operación y no se editan desde movimientos manuales.' },
         { status: 409 }
       );
     }

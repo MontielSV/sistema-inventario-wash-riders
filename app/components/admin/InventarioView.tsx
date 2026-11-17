@@ -479,7 +479,7 @@ export default function InventarioView({ vista, onNavigate }: InventarioViewProp
                                   </ul>
                                 </div>
                               </details>
-                              {grupo.length === 1 && !esVenta && (
+                              {(principal.tipo === 'ENTRADA' || (grupo.length === 1 && !esVenta)) && (
                               <button
                                 type="button"
                                 title="Editar movimiento"
