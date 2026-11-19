@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, type ReactNode } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   ArrowsRightLeftIcon, 
   ArrowDownCircleIcon, 
@@ -37,7 +37,7 @@ interface Movimiento {
 
 interface InventarioViewProps {
   vista: 'historial' | 'registrar';
-  headerContent?: ReactNode;
+  hideHeader?: boolean;
 }
 
 const MOTIVOS: Record<string, string> = {
@@ -62,7 +62,7 @@ const toLocalDateTimeInput = (value: string) => {
   return date.toISOString().slice(0, 16);
 };
 
-export default function InventarioView({ vista, headerContent }: InventarioViewProps) {
+export default function InventarioView({ vista, hideHeader = false }: InventarioViewProps) {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -198,20 +198,20 @@ export default function InventarioView({ vista, headerContent }: InventarioViewP
   const claseEtiqueta = 'block text-xs font-bold text-slate-400 uppercase mb-1';
 
   return (
-    <div className="inventory-light min-h-screen bg-[#030303] p-4 font-sans text-white md:p-8">
-      <div className={`mx-auto space-y-8 ${vista === 'historial' ? 'max-w-[1600px]' : 'max-w-7xl'}`}>
-        
-        <SectionHeader
-          accent={vista === 'historial' ? 'amber' : 'blue'}
-          title={vista === 'historial' ? 'Historial' : 'Movimiento'}
-          description={vista === 'historial'
-            ? 'Consulta y filtra las entradas y salidas guardadas en el inventario.'
-            : 'Registra entradas y salidas manuales para mantener el stock actualizado.'}
-          icon={vista === 'historial'
-            ? <ClockIcon className="h-6 w-6" />
-            : <ArrowsRightLeftIcon className="h-6 w-6" />}
-        />
-        {headerContent}
+    <div className={hideHeader ? '' : 'inventory-light min-h-screen bg-[#030303] p-4 font-sans text-white md:p-8'}>
+      <div className={`mx-auto ${hideHeader ? 'max-w-[1600px]' : `space-y-8 ${vista === 'historial' ? 'max-w-[1600px]' : 'max-w-7xl'}`}`}>
+        {!hideHeader && (
+          <SectionHeader
+            accent={vista === 'historial' ? 'amber' : 'blue'}
+            title={vista === 'historial' ? 'Historial' : 'Movimiento'}
+            description={vista === 'historial'
+              ? 'Consulta y filtra las entradas y salidas guardadas en el inventario.'
+              : 'Registra entradas y salidas manuales para mantener el stock actualizado.'}
+            icon={vista === 'historial'
+              ? <ClockIcon className="h-6 w-6" />
+              : <ArrowsRightLeftIcon className="h-6 w-6" />}
+          />
+        )}
 
         {vista === 'registrar' && <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4" aria-label="Resumen de inventario">
           <div className="bg-[#0f0f0f] border border-white/10 rounded-xl p-5">

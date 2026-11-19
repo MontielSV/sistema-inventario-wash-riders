@@ -1,6 +1,5 @@
 'use client';
 
-import type { ReactNode } from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import {
   ArrowLeftIcon,
@@ -13,8 +12,6 @@ import {
   GlobeAltIcon,
   UserCircleIcon,
 } from '@heroicons/react/24/outline';
-import SectionHeader from './SectionHeader';
-
 interface ActivityEntry {
   id: number;
   fecha: string;
@@ -316,7 +313,7 @@ function DetailValue({ value, field = '' }: { value: unknown; field?: string }) 
   return <>{formatDetailValue(field, value)}</>;
 }
 
-export default function HistorialActividadView({ headerContent }: { headerContent?: ReactNode }) {
+export default function HistorialActividadView() {
   const [entries, setEntries] = useState<ActivityEntry[]>([]);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(100);
@@ -350,13 +347,8 @@ export default function HistorialActividadView({ headerContent }: { headerConten
   const lastEntry = Math.min(page * pageSize, total);
 
   return (
-    <section className="mx-auto w-full max-w-7xl p-4 sm:p-8">
-      <SectionHeader
-        accent="amber"
-        title="Historial"
-        description="Consulta y filtra las entradas y salidas guardadas en el inventario."
-        icon={<ClockIcon className="h-6 w-6" />}
-      >
+    <section className="mx-auto w-full max-w-[1600px]">
+      <div className="mb-4 flex justify-end">
         <button
           type="button"
           onClick={() => void loadEntries()}
@@ -366,8 +358,7 @@ export default function HistorialActividadView({ headerContent }: { headerConten
           <ArrowPathIcon className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           Actualizar
         </button>
-      </SectionHeader>
-      {headerContent}
+      </div>
 
       {error && (
         <div role="alert" className="mb-4 rounded-xl border border-red-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">
