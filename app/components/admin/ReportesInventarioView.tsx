@@ -403,19 +403,93 @@ export default function ReportesInventarioView({ modo }: ReportesInventarioViewP
             <span className="text-xs text-slate-500">{`${modo === 'diario' ? operacionesDiarias.length : ventasAgrupadas.length} ${modo === 'diario' ? 'operaciones' : 'ventas'}`}</span>
           </header>
           {modo === 'diario' ? (
-            <div className="overflow-x-auto">
+            <>
+              <div className="space-y-3 p-3 xl:hidden">
+                {operacionesDiarias.map((operacion) => (
+                  <article key={operacion.clave} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="break-all font-mono text-xs font-bold text-blue-800">{operacion.codigo}</p>
+                        <time className="mt-1 block text-xs text-slate-500">{formatoFecha(operacion.fecha)}</time>
+                      </div>
+                      <span className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold ${
+                        operacion.tipo === 'Venta' ? 'bg-blue-100 text-blue-800' : 'bg-emerald-100 text-emerald-800'
+                      }`}>
+                        {operacion.tipo}
+                      </span>
+                    </div>
+                    <dl className="mt-3 grid grid-cols-2 gap-3 border-t border-slate-200 pt-3 text-xs">
+                      <div><dt className="text-slate-500">Productos</dt><dd className="mt-0.5 font-semibold text-slate-800">{operacion.movimientos.length}</dd></div>
+                      <div><dt className="text-slate-500">Unidades</dt><dd className="mt-0.5 font-semibold text-slate-800">{operacion.unidades}</dd></div>
+                      <div className="col-span-2"><dt className="text-slate-500">Motivo</dt><dd className="mt-0.5 break-words font-medium text-slate-800">{operacion.motivo}</dd></div>
+                      <div className="col-span-2"><dt className="text-slate-500">Total</dt><dd className="mt-0.5 break-words text-base font-bold text-slate-900">{formatoMoneda(operacion.total)}</dd></div>
+                    </dl>
+                    <details className="mt-2 border-t border-slate-200 pt-2">
+                      <summary className="min-h-10 cursor-pointer py-2 text-sm font-semibold text-blue-800">Ver productos</summary>
+                      <ul className="space-y-2 pb-2">
+                        {operacion.movimientos.map((movimiento) => (
+                          <li key={movimiento.id} className="flex justify-between gap-3 text-xs">
+                            <span className="min-w-0 break-words text-slate-700">{movimiento.nombre_producto || `Producto ${movimiento.producto_id}`}</span>
+                            <strong className="shrink-0 text-slate-900">{movimiento.cantidad} uds.</strong>
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  </article>
+                ))}
+                {!cargando && operacionesDiarias.length === 0 && (
+                  <p className="py-8 text-center text-sm text-slate-500">No hay compras ni ventas en esta fecha.</p>
+                )}
+              </div>
+              <div className="hidden overflow-x-auto xl:block">
               <table className="w-full min-w-[900px] text-left text-sm">
                 <thead className="bg-slate-50 text-xs uppercase text-slate-500"><tr><th className="px-4 py-3">Código de seguimiento</th><th className="px-4 py-3">Fecha y hora</th><th className="px-4 py-3">Tipo</th><th className="px-4 py-3">Productos</th><th className="px-4 py-3">Unidades</th><th className="px-4 py-3">Motivo</th><th className="px-4 py-3 text-right">Total</th><th className="px-4 py-3 text-right">Detalle</th></tr></thead>
                 <tbody className="divide-y divide-slate-100">{operacionesDiarias.map((operacion) => <tr key={operacion.clave}><td className="px-4 py-3 font-mono text-xs font-semibold text-blue-800">{operacion.codigo}</td><td className="whitespace-nowrap px-4 py-3 text-xs text-slate-500">{formatoFecha(operacion.fecha)}</td><td className="px-4 py-3">{operacion.tipo}</td><td className="px-4 py-3">{operacion.movimientos.length}</td><td className="px-4 py-3">{operacion.unidades}</td><td className="px-4 py-3">{operacion.motivo}</td><td className="px-4 py-3 text-right font-semibold">{formatoMoneda(operacion.total)}</td><td className="px-4 py-3 text-right"><OperacionDetalle operacion={operacion} etiqueta={operacion.tipo} /></td></tr>)}{!cargando && operacionesDiarias.length === 0 && <tr><td colSpan={8} className="px-4 py-10 text-center text-sm text-slate-500">No hay compras ni ventas en esta fecha.</td></tr>}</tbody>
               </table>
-            </div>
+              </div>
+            </>
           ) : (
-            <div className="overflow-x-auto">
+            <>
+              <div className="space-y-3 p-3 xl:hidden">
+                {ventasAgrupadas.map((venta) => (
+                  <article key={venta.clave} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="break-all font-mono text-xs font-bold text-blue-800">{venta.codigo}</p>
+                        <time className="mt-1 block text-xs text-slate-500">{formatoFecha(venta.fecha)}</time>
+                      </div>
+                      <span className="shrink-0 rounded-full bg-blue-100 px-2.5 py-1 text-[10px] font-bold text-blue-800">Venta</span>
+                    </div>
+                    <dl className="mt-3 grid grid-cols-2 gap-3 border-t border-slate-200 pt-3 text-xs">
+                      <div><dt className="text-slate-500">Productos</dt><dd className="mt-0.5 font-semibold text-slate-800">{venta.movimientos.length}</dd></div>
+                      <div><dt className="text-slate-500">Unidades</dt><dd className="mt-0.5 font-semibold text-slate-800">{venta.unidades}</dd></div>
+                      <div className="col-span-2"><dt className="text-slate-500">Motivo</dt><dd className="mt-0.5 break-words font-medium text-slate-800">{venta.motivo}</dd></div>
+                      <div className="col-span-2"><dt className="text-slate-500">Total</dt><dd className="mt-0.5 break-words text-base font-bold text-slate-900">{formatoMoneda(venta.total)}</dd></div>
+                    </dl>
+                    <details className="mt-2 border-t border-slate-200 pt-2">
+                      <summary className="min-h-10 cursor-pointer py-2 text-sm font-semibold text-blue-800">Ver productos</summary>
+                      <ul className="space-y-2 pb-2">
+                        {venta.movimientos.map((movimiento) => (
+                          <li key={movimiento.id} className="flex justify-between gap-3 text-xs">
+                            <span className="min-w-0 break-words text-slate-700">{movimiento.nombre_producto || `Producto ${movimiento.producto_id}`}</span>
+                            <strong className="shrink-0 text-slate-900">{movimiento.cantidad} uds.</strong>
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  </article>
+                ))}
+                {!cargando && ventasAgrupadas.length === 0 && (
+                  <p className="py-8 text-center text-sm text-slate-500">No hay ventas para este mes.</p>
+                )}
+              </div>
+              <div className="hidden overflow-x-auto xl:block">
               <table className="w-full min-w-[780px] text-left text-sm">
                 <thead className="bg-slate-50 text-xs uppercase text-slate-500"><tr><th className="px-4 py-3">Código de seguimiento</th><th className="px-4 py-3">Fecha y hora</th><th className="px-4 py-3">Productos</th><th className="px-4 py-3">Unidades</th><th className="px-4 py-3">Motivo</th><th className="px-4 py-3 text-right">Total</th><th className="px-4 py-3 text-right">Detalle</th></tr></thead>
                 <tbody className="divide-y divide-slate-100">{ventasAgrupadas.map((venta) => <tr key={venta.clave}><td className="px-4 py-3 font-mono text-xs font-semibold text-blue-800">{venta.codigo}</td><td className="whitespace-nowrap px-4 py-3 text-xs text-slate-500">{formatoFecha(venta.fecha)}</td><td className="px-4 py-3">{venta.movimientos.length}</td><td className="px-4 py-3">{venta.unidades}</td><td className="px-4 py-3">{venta.motivo}</td><td className="px-4 py-3 text-right font-semibold">{formatoMoneda(venta.total)}</td><td className="px-4 py-3 text-right"><OperacionDetalle operacion={venta} etiqueta="Venta" /></td></tr>)}{!cargando && ventasAgrupadas.length === 0 && <tr><td colSpan={7} className="px-4 py-10 text-center text-sm text-slate-500">No hay ventas para este mes.</td></tr>}</tbody>
               </table>
-            </div>
+              </div>
+            </>
           )}
         </section>
       </div>

@@ -22,7 +22,7 @@ const Tarjeta = ({ titulo, valor, subtitulo, tendencia, destacado, icono, onClic
   <button 
     onClick={onClick}
     aria-label={`Ver detalles de ${titulo}`}
-    className={`w-full text-left backdrop-blur-3xl backdrop-saturate-150 border p-7 rounded-[2.5rem] shadow-2xl flex flex-col justify-between transition-all duration-300 hover:scale-[1.03] hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-[#E50914] focus:ring-offset-2 focus:ring-offset-[#0f0f0f] cursor-pointer group relative overflow-hidden ${
+    className={`w-full min-w-0 text-left backdrop-blur-3xl backdrop-saturate-150 border p-4 sm:p-6 lg:p-7 rounded-2xl sm:rounded-[2.5rem] shadow-2xl flex flex-col justify-between transition-all duration-300 sm:hover:scale-[1.03] sm:hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-[#E50914] focus:ring-offset-2 focus:ring-offset-[#0f0f0f] cursor-pointer group relative overflow-hidden ${
       destacado 
         ? 'bg-gradient-to-br from-[#1a0505] to-[#0f0f0f] border-red-500/40 shadow-[0_10px_40px_rgba(229,9,20,0.2)]' 
         : 'bg-[#0f0f0f]/80 border-white/10 hover:border-[#E50914]/50'
@@ -36,7 +36,7 @@ const Tarjeta = ({ titulo, valor, subtitulo, tendencia, destacado, icono, onClic
           {icono}
         </div>
       </div>
-      <p className={`text-3xl md:text-4xl font-black tracking-tight font-mono ${destacado ? 'text-emerald-400' : 'text-white'}`}>
+      <p className={`break-words text-2xl sm:text-3xl md:text-4xl font-black tracking-tight font-mono ${destacado ? 'text-emerald-400' : 'text-white'}`}>
         ${valor.toLocaleString('es-CO')}
       </p>
     </div>

@@ -168,7 +168,7 @@ export default function RegistrarVentaView() {
 
         {error && <p role="alert" className="rounded-lg border border-red-500/30 bg-red-950/30 p-4 text-sm text-red-300">{error}</p>}
         <form onSubmit={registrarSalida} className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(320px,0.7fr)]">
-          <div className="space-y-5 rounded-xl border border-white/10 bg-[#0f0f0f] p-5 md:p-7">
+          <div className="space-y-5 rounded-xl border border-white/10 bg-[#0f0f0f] p-4 sm:p-5 md:p-7">
             <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_160px]">
               <label className="block text-sm font-semibold text-slate-700">
                 Buscar y seleccionar producto
@@ -267,7 +267,58 @@ export default function RegistrarVentaView() {
               <PlusIcon className="h-4 w-4" /> Agregar al carrito
             </button>
 
-            <div className="overflow-x-auto rounded-lg border border-white/10">
+            <div className="space-y-3 md:hidden">
+              {carrito.length === 0 ? (
+                <div className="rounded-lg border border-white/10 bg-black/20 px-4 py-8 text-center text-sm text-slate-500">
+                  Todavía no agregas productos.
+                </div>
+              ) : (
+                carrito.map((item) => {
+                  const producto = productos.find((registro) => registro.id === item.producto_id);
+                  if (!producto) return null;
+                  return (
+                    <article key={item.producto_id} className="rounded-lg border border-white/10 bg-black/20 p-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <h3 className="break-words text-sm font-bold text-white">{producto.nombre}</h3>
+                          <p className="mt-1 break-all text-xs text-slate-500">{producto.codigo || 'Sin código'}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setCarrito((actual) => actual.filter((linea) => linea.producto_id !== item.producto_id))}
+                          aria-label={`Quitar ${producto.nombre}`}
+                          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-rose-500/20 text-rose-300 hover:bg-red-950/40"
+                        >
+                          <TrashIcon className="h-4 w-4" />
+                        </button>
+                      </div>
+                      <div className="mt-3 grid grid-cols-2 items-end gap-3 border-t border-white/10 pt-3">
+                        <label className="block text-xs font-semibold text-slate-400">
+                          Cantidad
+                          <input
+                            type="number"
+                            min="1"
+                            max={producto.stock_actual}
+                            value={item.cantidad}
+                            aria-label={`Cantidad de ${producto.nombre}`}
+                            onChange={(event) => actualizarCantidad(item.producto_id, Number(event.target.value))}
+                            className="mt-1.5 w-full rounded-md border border-white/10 bg-black/50 px-2 py-2 text-sm text-white"
+                          />
+                        </label>
+                        <div className="min-w-0 text-right">
+                          <p className="text-xs text-slate-500">Subtotal</p>
+                          <p className="mt-1 break-words font-mono text-sm font-bold text-white">
+                            {formatoMoneda(Number(producto.precio) * item.cantidad)}
+                          </p>
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })
+              )}
+            </div>
+
+            <div className="hidden overflow-x-auto rounded-lg border border-white/10 md:block">
               <table className="w-full min-w-[560px] text-left text-sm">
                 <thead className="bg-black/40 text-xs uppercase text-slate-400">
                   <tr><th className="px-4 py-3">Producto</th><th className="px-4 py-3">Cantidad</th><th className="px-4 py-3 text-right">Subtotal</th><th className="px-4 py-3" /></tr>
@@ -345,7 +396,7 @@ export default function RegistrarVentaView() {
             </div>
           </div>
 
-          <aside className="space-y-4 rounded-xl border border-white/10 bg-[#0f0f0f] p-5 md:p-7">
+          <aside className="space-y-4 rounded-xl border border-white/10 bg-[#0f0f0f] p-4 sm:p-5 md:p-7">
             <div className="flex items-center gap-3 border-b border-white/10 pb-4">
               <ArrowDownCircleIcon className="h-6 w-6 text-emerald-400" />
               <div>
@@ -353,7 +404,7 @@ export default function RegistrarVentaView() {
                 <p className="text-xs text-slate-400">{totalUnidades} unidades en {carrito.length} productos</p>
               </div>
             </div>
-            <div className="flex items-end justify-between gap-3 py-2">
+            <div className="flex flex-col gap-1 py-2 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
               <span className="text-sm text-slate-400">Total de la venta</span>
               <strong className="text-xl font-black text-emerald-300">{formatoMoneda(total)}</strong>
             </div>

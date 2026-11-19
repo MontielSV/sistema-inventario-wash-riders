@@ -25,21 +25,21 @@ export default function VentanaModularFinanciera({ data = {}, pagos = {} }: Vent
   const { efectivo = 0, digital = 0 } = pagos || {};
 
   return (
-    <div className="bg-[#0f0f0f]/95 backdrop-blur-2xl border border-white/10 p-8 rounded-[2.5rem] shadow-2xl flex flex-col justify-between relative overflow-hidden group">
+    <div className="bg-[#0f0f0f]/95 backdrop-blur-2xl border border-white/10 p-4 sm:p-6 lg:p-8 rounded-2xl sm:rounded-[2.5rem] shadow-2xl flex flex-col justify-between relative overflow-hidden group">
       <div className="absolute -left-20 -bottom-20 w-48 h-48 bg-[#E50914]/10 rounded-full blur-3xl pointer-events-none group-hover:bg-[#E50914]/20 transition-all duration-700" />
 
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-white/10 mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-5 sm:pb-6 border-b border-white/10 mb-5 sm:mb-6">
         <div>
-          <h3 className="font-black text-xl text-white italic tracking-tight flex items-center gap-2">
+          <h3 className="font-black text-lg sm:text-xl text-white italic tracking-tight flex items-center gap-2">
             <BoltIcon className="w-6 h-6 text-[#E50914]" /> Panel Financiero & Pasarelas
           </h3>
           <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">Módulo autónomo sincronizado en tiempo real</p>
         </div>
-        <div className="flex bg-black p-1.5 rounded-2xl border border-white/10 shadow-inner">
-          <button onClick={() => setSubModulo('finanzas')} className={`px-4 py-2 rounded-xl font-black text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 ${subModulo === 'finanzas' ? 'bg-[#E50914] text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}>
+        <div className="flex w-full bg-black p-1 rounded-xl border border-white/10 shadow-inner sm:w-auto sm:p-1.5 sm:rounded-2xl">
+          <button onClick={() => setSubModulo('finanzas')} className={`flex-1 justify-center px-2 py-2 rounded-lg font-black text-[10px] uppercase tracking-wider transition-all flex items-center gap-1 sm:flex-none sm:gap-1.5 sm:px-4 sm:text-xs sm:rounded-xl ${subModulo === 'finanzas' ? 'bg-[#E50914] text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}>
             <ChartBarIcon className="w-4 h-4" /> Finanzas
           </button>
-          <button onClick={() => setSubModulo('operacion')} className={`px-4 py-2 rounded-xl font-black text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 ${subModulo === 'operacion' ? 'bg-zinc-800 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}>
+          <button onClick={() => setSubModulo('operacion')} className={`flex-1 justify-center px-2 py-2 rounded-lg font-black text-[10px] uppercase tracking-wider transition-all flex items-center gap-1 sm:flex-none sm:gap-1.5 sm:px-4 sm:text-xs sm:rounded-xl ${subModulo === 'operacion' ? 'bg-zinc-800 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}>
             <Cog6ToothIcon className="w-4 h-4" /> Detalles Caja
           </button>
         </div>

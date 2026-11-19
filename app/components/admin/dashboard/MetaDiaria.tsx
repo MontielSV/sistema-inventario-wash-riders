@@ -32,7 +32,7 @@ export default function MetaDiaria({
   };
 
   return (
-    <div className={`bg-[#0f0f0f]/80 backdrop-blur-3xl backdrop-saturate-150 p-8 rounded-[2.5rem] border transition-all duration-700 shadow-2xl flex flex-col justify-between relative overflow-hidden group ${
+    <div className={`bg-[#0f0f0f]/80 backdrop-blur-3xl backdrop-saturate-150 p-4 sm:p-6 lg:p-8 rounded-2xl sm:rounded-[2.5rem] border transition-all duration-700 shadow-2xl flex flex-col justify-between relative overflow-hidden group ${
       metaSuperada ? 'border-emerald-500/50 shadow-[0_0_40px_rgba(16,185,129,0.15)]' : 'border-white/10 hover:border-white/20'
     }`}>
       
@@ -41,13 +41,13 @@ export default function MetaDiaria({
       }`} />
 
       <div className="relative z-10">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-wrap justify-between items-center gap-3 mb-5 sm:mb-6">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-black/60 border border-white/10 flex items-center justify-center shadow-inner">
               <TrophyIcon className="w-6 h-6 text-[#E50914]" />
             </div>
             <div>
-              <h3 className="font-black text-lg text-white tracking-tight">Meta de Ventas Diaria</h3>
+              <h3 className="font-black text-base sm:text-lg text-white tracking-tight">Meta de Ventas Diaria</h3>
               <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">Objetivo gerencial corporativo</p>
             </div>
           </div>

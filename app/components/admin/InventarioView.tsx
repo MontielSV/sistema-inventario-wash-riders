@@ -192,6 +192,15 @@ export default function InventarioView({ vista, hideHeader = false }: Inventario
     return grupos;
   }, new Map<string, Movimiento[]>());
   const editarDesdeHistorial = vista === 'historial' && movimientoEditando !== null;
+  const iniciarEdicion = (movimiento: Movimiento) => {
+    setMovimientoEditando(movimiento.id);
+    setProductoId(movimiento.producto_id);
+    setTipo(movimiento.tipo === 'ENTRADA' ? 'ENTRADA' : 'SALIDA');
+    setMotivoTipo(movimiento.motivo_tipo);
+    setCantidad(Number(movimiento.cantidad));
+    setMotivo(movimiento.motivo || '');
+    setFecha(toLocalDateTimeInput(movimiento.fecha));
+  };
   const claseCampo = editarDesdeHistorial
     ? 'w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100'
     : 'w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-[#E50914]';
@@ -402,7 +411,7 @@ export default function InventarioView({ vista, hideHeader = false }: Inventario
           )}
 
           {/* Historial de Movimientos */}
-          <div className={`${vista === 'registrar' ? 'hidden' : ''} bg-[#0f0f0f]/95 rounded-[2rem] border border-white/10 overflow-hidden shadow-2xl p-6 space-y-4`}>
+          <div className={`${vista === 'registrar' ? 'hidden' : ''} overflow-hidden rounded-2xl border border-white/10 bg-[#0f0f0f]/95 p-4 shadow-2xl space-y-4 sm:rounded-[2rem] sm:p-6`}>
             <div className="flex flex-col gap-3 border-b border-white/5 pb-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-xl font-bold text-white">Historial</h2>
@@ -446,7 +455,87 @@ export default function InventarioView({ vista, hideHeader = false }: Inventario
                 No hay movimientos que coincidan con los filtros.
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <>
+              <div className="space-y-3 xl:hidden">
+                {Array.from(gruposMovimiento.entries()).map(([clave, grupo]) => {
+                  const principal = grupo[0];
+                  const esVenta = principal.motivo_tipo === 'VENTA' || principal.tipo === 'VENTA';
+                  const unidades = grupo.reduce((total, item) => total + Number(item.cantidad), 0);
+                  const totalOperacion = grupo.reduce(
+                    (total, item) => total + Number(item.cantidad) * Number(item.precio_unitario),
+                    0,
+                  );
+                  const mostrarMotivo = Boolean(principal.motivo) && (
+                    principal.motivo_tipo === 'OTRO' || principal.motivo !== MOTIVOS[principal.motivo_tipo]
+                  );
+                  const tipoMovimiento = MOTIVOS[principal.motivo_tipo] || (principal.tipo === 'ENTRADA' ? 'Entrada' : 'Salida');
+                  const colorMovimiento = esVenta
+                    ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                    : principal.tipo === 'ENTRADA'
+                      ? 'border-blue-200 bg-blue-50 text-blue-800'
+                      : 'border-rose-200 bg-rose-50 text-rose-800';
+
+                  return (
+                    <article key={clave} className="rounded-xl border border-blue-100 bg-white p-4 shadow-sm">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <time className="block text-xs text-slate-500">
+                            {new Date(principal.fecha).toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' })}
+                          </time>
+                          <p className="mt-1 break-all font-mono text-xs font-semibold text-slate-600">
+                            {principal.codigo_seguimiento || 'Sin código de seguimiento'}
+                          </p>
+                        </div>
+                        <span className={`shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-bold ${colorMovimiento}`}>
+                          {tipoMovimiento}
+                        </span>
+                      </div>
+                      {mostrarMotivo && <p className="mt-2 break-words text-sm text-slate-600">{principal.motivo}</p>}
+                      <dl className="mt-3 grid grid-cols-2 gap-3 border-y border-slate-100 py-3 text-sm">
+                        <div>
+                          <dt className="text-xs text-slate-500">Productos</dt>
+                          <dd className="mt-0.5 font-semibold text-slate-800">{grupo.length}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-xs text-slate-500">Unidades</dt>
+                          <dd className="mt-0.5 font-bold text-slate-900">{unidades}</dd>
+                        </div>
+                        <div className="col-span-2">
+                          <dt className="text-xs text-slate-500">Total</dt>
+                          <dd className="mt-0.5 break-words font-bold text-slate-900">${totalOperacion.toLocaleString('es-CO')} COP</dd>
+                        </div>
+                      </dl>
+                      <details className="mt-3">
+                        <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-2 rounded-lg bg-slate-50 px-3 text-sm font-semibold text-blue-900">
+                          Ver productos ({grupo.length})
+                          <MagnifyingGlassIcon className="h-4 w-4 shrink-0" />
+                        </summary>
+                        <ul className="mt-2 space-y-2 px-1">
+                          {grupo.map((item) => (
+                            <li key={item.id} className="flex min-w-0 justify-between gap-3 text-xs">
+                              <span className="min-w-0 break-words text-slate-700">
+                                {item.nombre_producto || `Producto ${item.producto_id}`}
+                                {item.codigo_producto && <span className="ml-1 text-slate-500">({item.codigo_producto})</span>}
+                              </span>
+                              <strong className="shrink-0 text-slate-900">{item.cantidad} uds.</strong>
+                            </li>
+                          ))}
+                        </ul>
+                      </details>
+                      {(principal.tipo === 'ENTRADA' || (grupo.length === 1 && !esVenta)) && (
+                        <button
+                          type="button"
+                          onClick={() => iniciarEdicion(principal)}
+                          className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 text-sm font-bold text-blue-900 transition-colors hover:bg-blue-100"
+                        >
+                          <PencilSquareIcon className="h-4 w-4" /> Editar movimiento
+                        </button>
+                      )}
+                    </article>
+                  );
+                })}
+              </div>
+              <div className="hidden overflow-x-auto xl:block">
                 <table className="w-full min-w-[900px] table-fixed text-left border-collapse">
                   <thead>
                     <tr className="border-b border-white/10 text-xs text-slate-400 uppercase tracking-wider bg-black/40">
@@ -537,15 +626,7 @@ export default function InventarioView({ vista, hideHeader = false }: Inventario
                                 type="button"
                                 title="Editar movimiento"
                                 aria-label={`Editar movimiento de ${principal.nombre_producto || 'producto'}`}
-                                onClick={() => {
-                                  setMovimientoEditando(principal.id);
-                                  setProductoId(principal.producto_id);
-                                  setTipo(principal.tipo === 'ENTRADA' ? 'ENTRADA' : 'SALIDA');
-                                  setMotivoTipo(principal.motivo_tipo);
-                                  setCantidad(Number(principal.cantidad));
-                                  setMotivo(principal.motivo || '');
-                                  setFecha(toLocalDateTimeInput(principal.fecha));
-                                }}
+                                onClick={() => iniciarEdicion(principal)}
                                 className="rounded-md border border-white/10 p-2 text-slate-300 transition-colors hover:border-[#E50914]/50 hover:text-white"
                               >
                                 <PencilSquareIcon className="h-4 w-4" />
@@ -559,6 +640,7 @@ export default function InventarioView({ vista, hideHeader = false }: Inventario
                   </tbody>
                 </table>
               </div>
+              </>
             )}
           </div>
 

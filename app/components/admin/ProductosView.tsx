@@ -271,8 +271,69 @@ export default function ProductosView() {
         </div>
       </div>
 
-      {/* Tabla de Productos */}
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="space-y-3 xl:hidden">
+        {filtrados.length === 0 ? (
+          <div className="rounded-xl border border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
+            No hay productos que coincidan con la búsqueda o el catálogo está vacío.
+          </div>
+        ) : (
+          filtrados.map((p) => {
+            const sinExistencias = Number(p.stock_actual) <= 0;
+            const reponer = !sinExistencias && Number(p.stock_actual) <= Number(p.stock_minimo);
+            return (
+              <article key={p.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="flex min-w-0 items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h2 className="break-words font-bold text-slate-900">{p.nombre}</h2>
+                    <p className="mt-1 break-all font-mono text-xs text-slate-500">{p.codigo || 'Sin código'}</p>
+                  </div>
+                  <span className={`shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase ${
+                    sinExistencias
+                      ? 'border-rose-200 bg-rose-50 text-rose-800'
+                      : reponer
+                        ? 'border-amber-200 bg-amber-50 text-amber-800'
+                        : 'border-blue-200 bg-blue-50 text-blue-800'
+                  }`}>
+                    {sinExistencias ? 'Sin stock' : reponer ? 'Reponer' : 'Disponible'}
+                  </span>
+                </div>
+                <dl className="mt-4 grid grid-cols-2 gap-3 border-y border-slate-100 py-3 text-sm">
+                  <div>
+                    <dt className="text-xs text-slate-500">Precio</dt>
+                    <dd className="mt-0.5 break-words font-semibold text-slate-900">${Number(p.precio).toLocaleString('es-CO')} COP</dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-slate-500">Disponible</dt>
+                    <dd className="mt-0.5 font-bold text-slate-900">{p.stock_actual} unidades</dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-slate-500">Stock mínimo</dt>
+                    <dd className="mt-0.5 font-semibold text-slate-700">{p.stock_minimo} unidades</dd>
+                  </div>
+                </dl>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => abrirModal(p)}
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-blue-100 bg-blue-50 px-3 text-sm font-bold text-blue-800 transition-colors hover:bg-blue-100"
+                  >
+                    <PencilSquareIcon className="h-4 w-4" /> Editar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setMensajeExito(''); setErrorRetiro(''); setProductoPorRetirar(p); }}
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-rose-100 bg-rose-50 px-3 text-sm font-bold text-rose-700 transition-colors hover:bg-rose-100"
+                  >
+                    <TrashIcon className="h-4 w-4" /> Retirar
+                  </button>
+                </div>
+              </article>
+            );
+          })
+        )}
+      </div>
+
+      <div className="hidden overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm xl:block">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[780px] text-left text-sm">
             <thead className="border-b border-slate-200 bg-slate-50 text-xs font-bold uppercase text-slate-500">

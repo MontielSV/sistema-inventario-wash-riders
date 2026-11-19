@@ -182,7 +182,7 @@ export default function DashboardView({ onNavigate }: DashboardViewProps) {
 
   return (
     <section className="min-h-screen bg-slate-50 p-4 text-slate-900 md:p-8">
-      <div className="mx-auto max-w-7xl space-y-8">
+      <div className="mx-auto max-w-7xl space-y-6 md:space-y-8">
         <header className="flex flex-col gap-4 border-b border-white/10 pb-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
               <p className="text-xs font-bold uppercase tracking-widest text-cyan-700">Wash Riders</p>
@@ -206,7 +206,7 @@ export default function DashboardView({ onNavigate }: DashboardViewProps) {
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-6">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-6">
           <button
             type="button"
             onClick={() => onNavigate('productos')}
@@ -276,7 +276,7 @@ export default function DashboardView({ onNavigate }: DashboardViewProps) {
               <span className="text-xs font-bold uppercase">Ingresos de hoy</span>
               <BanknotesIcon className="h-5 w-5 text-blue-700" />
             </div>
-            <p className="mt-3 text-2xl font-black text-slate-900">{cargando ? '...' : formatoMoneda(ingresosHoy)}</p>
+            <p className="mt-3 break-words text-xl font-black text-slate-900 sm:text-2xl">{cargando ? '...' : formatoMoneda(ingresosHoy)}</p>
           </article>
         </div>
 

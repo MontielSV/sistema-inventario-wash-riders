@@ -13,18 +13,18 @@ export default function GraficosVentas({ datosPorHora = [] }: GraficosVentasProp
   const totalDia = safeDatos.reduce((acc, val) => acc + Number(val || 0), 0);
 
   return (
-    <div className="bg-[#0f0f0f]/95 backdrop-blur-2xl border border-white/10 p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
+    <div className="bg-[#0f0f0f]/95 backdrop-blur-2xl border border-white/10 p-4 sm:p-6 lg:p-8 rounded-2xl sm:rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
       <div className="absolute top-0 right-0 w-64 h-64 bg-red-600/10 rounded-full blur-3xl pointer-events-none group-hover:bg-red-600/20 transition-all duration-700" />
       
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-5 sm:mb-8">
         <div>
-          <h3 className="font-black text-xl text-white italic tracking-tight flex items-center gap-2">
+          <h3 className="font-black text-lg sm:text-xl text-white italic tracking-tight flex items-center gap-2">
             <PresentationChartLineIcon className="w-6 h-6 text-[#E50914]" /> Curva de Ingresos por Horario
           </h3>
           <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">Sincronización en tiempo real vía PostgreSQL GROUP BY</p>
         </div>
         
-        <div className="flex items-center gap-3 bg-black/60 px-4 py-2.5 rounded-2xl border border-white/10 shadow-lg">
+        <div className="flex w-full items-center justify-between gap-3 bg-black/60 px-3 py-2.5 rounded-xl border border-white/10 shadow-lg sm:w-auto sm:justify-start sm:rounded-2xl sm:px-4">
           <div>
             <span className="text-[9px] text-slate-400 uppercase tracking-widest font-bold block">Pico Máximo Hora</span>
             <span className="text-sm font-black text-emerald-400 font-mono">${picoMaximo.toLocaleString('es-CO')}</span>
@@ -37,7 +37,7 @@ export default function GraficosVentas({ datosPorHora = [] }: GraficosVentasProp
         </div>
       </div>
       
-      <div className="flex items-end gap-2 border-b border-white/10 pb-3 h-72 overflow-x-auto relative pt-8 scrollbar-thin scrollbar-thumb-zinc-800">
+      <div className="flex items-end gap-1 sm:gap-2 border-b border-white/10 pb-3 h-64 sm:h-72 overflow-x-auto relative pt-8 scrollbar-thin scrollbar-thumb-zinc-800">
         {safeDatos.map((monto: number, h: number) => {
           const valorMonto = Number(monto || 0);
           const techo = Math.max(picoMaximo * 1.15, 10000); 
@@ -45,7 +45,7 @@ export default function GraficosVentas({ datosPorHora = [] }: GraficosVentasProp
           if (valorMonto > 0 && altura < 6) altura = 6;
 
           return (
-            <div key={h} className="flex-1 min-w-[34px] flex flex-col items-center h-full justify-end group/bar">
+            <div key={h} className="flex-1 min-w-[26px] sm:min-w-[34px] flex flex-col items-center h-full justify-end group/bar">
               {valorMonto > 0 ? (
                 <span className="text-[9px] font-black text-emerald-400 mb-2 bg-zinc-900/95 px-2 py-0.5 rounded-md shadow-xl border border-emerald-500/30 group-hover/bar:scale-110 transition-transform whitespace-nowrap z-10">
                   ${valorMonto >= 1000 ? `${(valorMonto/1000).toFixed(0)}k` : valorMonto}
@@ -69,7 +69,7 @@ export default function GraficosVentas({ datosPorHora = [] }: GraficosVentasProp
           );
         })}
       </div>
-      <div className="flex justify-between items-center mt-4 text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+      <div className="flex justify-between items-center gap-2 mt-4 text-[9px] sm:text-[10px] text-slate-500 font-bold uppercase tracking-widest">
         <span>00:00 Horas (Inicio de Jornada)</span>
         <span>23:00 Horas (Cierre)</span>
       </div>

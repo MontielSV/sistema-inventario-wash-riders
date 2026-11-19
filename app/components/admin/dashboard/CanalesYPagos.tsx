@@ -44,13 +44,13 @@ export default function CanalesYPagos({ pagos = {} }: CanalesYPagosProps) {
     : 'Sin Actividad';
 
   return (
-    <div className="bg-[#0f0f0f]/80 backdrop-blur-3xl backdrop-saturate-150 border border-white/10 p-8 rounded-[2.5rem] shadow-2xl flex flex-col justify-between relative overflow-hidden group">
+    <div className="bg-[#0f0f0f]/80 backdrop-blur-3xl backdrop-saturate-150 border border-white/10 p-4 sm:p-6 lg:p-8 rounded-2xl sm:rounded-[2.5rem] shadow-2xl flex flex-col justify-between relative overflow-hidden group">
       <div className="absolute -right-20 -bottom-20 w-48 h-48 bg-[#E50914]/10 rounded-full blur-3xl pointer-events-none group-hover:bg-[#E50914]/20 transition-all duration-700 ease-out" />
 
       <div>
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h3 className="font-black text-lg text-white tracking-tight flex items-center gap-2">
+        <div className="flex flex-wrap justify-between items-start gap-3 mb-5 sm:mb-6">
+          <div className="min-w-0">
+            <h3 className="font-black text-base sm:text-lg text-white tracking-tight flex items-center gap-2">
               <ChartPieIcon className="w-6 h-6 text-[#E50914]" /> Análisis de Canales & Pagos
             </h3>
             <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">Distribución comparativa en tiempo real</p>

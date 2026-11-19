@@ -65,16 +65,16 @@ export default function SectionHeader({
 
   return (
     <header className={`flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-end sm:justify-between ${className}`}>
-      <div>
+      <div className="min-w-0">
         {displayTitle && (
           <p className={`text-xs font-bold uppercase tracking-widest ${colors.eyebrow}`}>Wash Riders - {displayTitle}</p>
         )}
-        <div className="mt-2 flex items-center gap-3">
+        <div className="mt-2 flex min-w-0 items-center gap-3">
           <span aria-hidden="true" className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border [&_svg]:h-6 [&_svg]:w-6 [&_svg]:stroke-[2] ${colors.icon}`}>
             {icon}
           </span>
           {displayTitle && (
-            <h1 className={`text-3xl font-black tracking-tight sm:text-4xl ${colors.title}`}>{displayTitle}</h1>
+            <h1 className={`min-w-0 break-words text-2xl font-black tracking-tight sm:text-3xl lg:text-4xl ${colors.title}`}>{displayTitle}</h1>
           )}
         </div>
         <p className="mt-2 text-sm text-slate-500">{description}</p>

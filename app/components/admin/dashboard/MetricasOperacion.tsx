@@ -15,15 +15,15 @@ export default function MetricasOperacion({ topProductos = [] }: MetricasOperaci
   const safeProductos = Array.isArray(topProductos) ? topProductos : [];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in fade-in duration-500">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 animate-in fade-in duration-500">
       
-      <div className="bg-[#0f0f0f]/95 backdrop-blur-2xl border border-white/10 p-8 rounded-[2.5rem] shadow-2xl flex flex-col justify-between relative overflow-hidden group">
+      <div className="bg-[#0f0f0f]/95 backdrop-blur-2xl border border-white/10 p-4 sm:p-6 lg:p-8 rounded-2xl sm:rounded-[2.5rem] shadow-2xl flex flex-col justify-between relative overflow-hidden group">
         <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl pointer-events-none group-hover:bg-emerald-500/10 transition-all duration-700" />
         <div>
           <span className="text-[10px] text-slate-400 uppercase tracking-widest font-black block mb-1">Infraestructura</span>
           <h3 className="font-black text-xl text-white tracking-tight">Estado del Sistema</h3>
-          <p className="text-2xl font-black text-emerald-400 mt-2 font-mono flex items-center gap-2">
-            <ServerStackIcon className="w-7 h-7 text-emerald-400" /> PostgreSQL Óptimo
+          <p className="break-words text-lg sm:text-2xl font-black text-emerald-400 mt-2 font-mono flex items-center gap-2">
+            <ServerStackIcon className="w-7 h-7 shrink-0 text-emerald-400" /> PostgreSQL Óptimo
           </p>
         </div>
         <div className="mt-8 pt-4 border-t border-white/5 flex items-center gap-3 bg-black/50 p-4 rounded-2xl border border-white/5 shadow-inner">
@@ -35,11 +35,11 @@ export default function MetricasOperacion({ topProductos = [] }: MetricasOperaci
         </div>
       </div>
 
-      <div className="md:col-span-2 bg-[#0f0f0f]/95 backdrop-blur-2xl border border-white/10 p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
+      <div className="md:col-span-2 bg-[#0f0f0f]/95 backdrop-blur-2xl border border-white/10 p-4 sm:p-6 lg:p-8 rounded-2xl sm:rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
         <div className="absolute top-0 right-0 w-48 h-48 bg-[#E50914]/10 rounded-full blur-3xl pointer-events-none group-hover:bg-[#E50914]/20 transition-all duration-700" />
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-wrap justify-between items-start gap-3 mb-5 sm:mb-6">
           <div>
-            <h3 className="font-black text-xl text-white italic tracking-tight flex items-center gap-2">
+            <h3 className="font-black text-lg sm:text-xl text-white italic tracking-tight flex items-center gap-2">
               Top 5 Platos Más Vendidos Hoy <TrophyIcon className="w-6 h-6 text-amber-400" />
             </h3>
             <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">Agregación en tiempo real de JSONB nativo</p>
@@ -56,10 +56,10 @@ export default function MetricasOperacion({ topProductos = [] }: MetricasOperaci
             </div>
           ) : (
             safeProductos.map((p, i) => (
-              <div key={i} className="flex justify-between items-center bg-black/60 p-4 rounded-2xl border border-white/5 hover:border-white/20 transition-all duration-300 group/item">
-                <div className="flex items-center gap-4">
+              <div key={i} className="flex flex-wrap justify-between items-center gap-3 bg-black/60 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-white/5 hover:border-white/20 transition-all duration-300 group/item">
+                <div className="flex min-w-0 items-center gap-3 sm:gap-4">
                   <span className="w-8 h-8 rounded-xl bg-zinc-900 flex items-center justify-center font-black text-xs text-[#E50914] border border-white/10 shadow-inner">#{i + 1}</span>
-                  <span className="font-black text-base text-white tracking-wide">{p.nombre}</span>
+                  <span className="break-words font-black text-sm sm:text-base text-white tracking-wide">{p.nombre}</span>
                 </div>
                 <div className="bg-red-950/40 border border-red-500/30 px-3.5 py-1.5 rounded-xl shadow-lg">
                   <span className="text-sm font-black text-[#E50914] font-mono">{p.cantidad} unds</span>
