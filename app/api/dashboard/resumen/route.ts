@@ -1,6 +1,7 @@
 import { Pool } from 'pg';
 import { NextResponse } from 'next/server';
 import { isAuthenticated } from '@/lib/auth';
+import { recordAuditEvent } from '@/lib/audit';
 
 
 const pool = new Pool({
@@ -163,13 +164,24 @@ export async function POST(req: Request) {
     }
 
     client = await pool.connect();
+    await client.query('BEGIN');
     // Actualizamos la meta en la tabla de configuración
     await client.query('UPDATE configuracion SET meta_diaria = $1', [nuevaMeta]);
+    await recordAuditEvent({
+      request: req,
+      action: 'editar',
+      entity: 'meta_diaria',
+      details: { nueva_meta: nuevaMeta },
+    }, client);
+    await client.query('COMMIT');
     client.release();
 
     return NextResponse.json({ success: true, meta: nuevaMeta });
   } catch (error) {
-    if (client) client.release();
+    if (client) {
+      await client.query('ROLLBACK');
+      client.release();
+    }
     console.error("Error guardando meta en BD:", error);
     return NextResponse.json({ error: 'Error al guardar la meta' }, { status: 500 });
   }

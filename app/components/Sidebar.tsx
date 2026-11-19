@@ -14,6 +14,7 @@ import {
   MoonIcon,
   SunIcon,
   QuestionMarkCircleIcon,
+  ClockIcon,
 } from '@heroicons/react/24/outline';
 
 interface SidebarProps {
@@ -42,6 +43,7 @@ export default function Sidebar({ vistaActiva, setVistaActiva, onLogout, tema, o
     { id: 'historial', nombre: 'Historial', icono: ShoppingBagIcon, tono: 'text-amber-300' },
     { id: 'reporte-ventas', nombre: 'Reporte Diario', icono: CurrencyDollarIcon, tono: 'text-teal-300' },
     { id: 'pdf', nombre: 'Reporte mensual', icono: ChartBarIcon, tono: 'text-violet-300' },
+    { id: 'bitacora', nombre: 'Bitácora de actividad', icono: ClockIcon, tono: 'text-purple-300' },
   ];
 
   return (

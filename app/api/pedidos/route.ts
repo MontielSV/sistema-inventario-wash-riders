@@ -1,6 +1,7 @@
 import { Pool } from 'pg';
 import { NextResponse } from 'next/server';
 import { isAuthenticated } from '@/lib/auth';
+import { recordAuditEvent } from '@/lib/audit';
 
 export const dynamic = 'force-dynamic';
 
@@ -50,6 +51,7 @@ export async function POST(request: Request) {
     const { cliente_nombre, direccion, telefono, producto_id, cantidad, total, metodo_pago, notas, items } = body;
 
     client = await pool.connect();
+    await client.query('BEGIN');
     
     const query = `
       INSERT INTO pedidos (cliente_nombre, direccion, telefono, producto_id, cantidad, estado, total, metodo_pago, notas, items, fecha) 
@@ -72,11 +74,27 @@ export async function POST(request: Request) {
     ];
 
     const result = await client.query(query, values);
+    await recordAuditEvent({
+      request,
+      action: 'crear',
+      entity: 'pedido',
+      entityId: result.rows[0].id,
+      details: {
+        cliente_nombre: values[0],
+        total: values[5],
+        metodo_pago: values[6],
+        items: result.rows[0].items,
+      },
+    }, client);
+    await client.query('COMMIT');
     client.release();
 
     return NextResponse.json({ message: '¡Pedido creado con éxito!', pedido: result.rows[0] }, { status: 201 });
   } catch (err) {
-    if (client) client.release();
+    if (client) {
+      await client.query('ROLLBACK');
+      client.release();
+    }
     console.error("Error SQL en POST /api/pedidos:", err);
     return NextResponse.json({ error: 'Error al crear el pedido' }, { status: 500 });
   }
@@ -148,6 +166,19 @@ export async function PUT(request: Request) {
 
     const query = `UPDATE pedidos SET estado = $1 WHERE id = $2 RETURNING *`;
     const result = await client.query(query, [estado, id]);
+    await recordAuditEvent({
+      request,
+      action: 'editar',
+      entity: 'pedido',
+      entityId: id,
+      details: {
+        estado_anterior: pedidoAnterior.estado,
+        estado_nuevo: estado,
+        cliente_nombre: pedidoAnterior.cliente_nombre,
+        total: pedidoAnterior.total,
+        items: pedidoAnterior.items,
+      },
+    }, client);
     
     await client.query('COMMIT'); 
     client.release();
@@ -202,6 +233,15 @@ export async function DELETE(request: Request) {
     } catch (auditErr) {
       console.warn("Tabla cierres_caja no crítica:", auditErr);
     }
+    await recordAuditEvent({
+      request,
+      action: 'cerrar_caja',
+      entity: 'caja',
+      details: {
+        pedidos_cerrados: updateResult.rows.length,
+        total: updateResult.rows.reduce((acc, row) => acc + Number(row.total || 0), 0),
+      },
+    });
     client.release();
     return NextResponse.json({ 
       success: true, 

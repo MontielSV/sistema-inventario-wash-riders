@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
+import { recordAuditEvent } from '@/lib/audit';
 import {
   clearSessionCookie,
   createSession,
+  getSessionIdentity,
   hashPassword,
   isAuthenticated,
   setSessionCookie,
@@ -54,6 +56,13 @@ export async function POST(request: Request) {
 
     const user = result.rows[0];
     if (!user || !verifyPassword(password, user.password)) {
+      await recordAuditEvent({
+        request,
+        action: 'intento_fallido',
+        entity: 'sesion',
+        details: { usuario: usuario.slice(0, 100) },
+        actor: { username: usuario.slice(0, 100) || 'desconocido' },
+      });
       return NextResponse.json({ error: 'Usuario o contraseña incorrectos' }, { status: 401 });
     }
 
@@ -61,11 +70,18 @@ export async function POST(request: Request) {
       await pool.query('UPDATE usuarios SET password = $1 WHERE id = $2', [hashPassword(password), user.id]);
     }
 
+    const identity = { userId: Number(user.id), username: user.usuario, nombre: user.nombre };
+    await recordAuditEvent({
+      request,
+      action: 'inicio_sesion',
+      entity: 'sesion',
+      actor: identity,
+    });
     const response = NextResponse.json({
       exito: true,
       usuario: { id: user.id, usuario: user.usuario, nombre: user.nombre },
     });
-    setSessionCookie(response, createSession(usuario));
+    setSessionCookie(response, createSession(identity));
     return response;
   } catch (error) {
     console.error('Error al iniciar sesión:', error);
@@ -73,7 +89,16 @@ export async function POST(request: Request) {
   }
 }
 
-export async function DELETE() {
+export async function DELETE(request: Request) {
+  const identity = getSessionIdentity(request);
+  if (identity) {
+    try {
+      await recordAuditEvent({ request, action: 'cierre_sesion', entity: 'sesion', actor: identity });
+    } catch (error) {
+      console.error('Error al registrar el cierre de sesión:', error);
+      return NextResponse.json({ error: 'No se pudo registrar el cierre de sesión' }, { status: 500 });
+    }
+  }
   const response = NextResponse.json({ exito: true });
   clearSessionCookie(response);
   return response;

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Pool } from 'pg';
 import { isAuthenticated } from '@/lib/auth';
+import { recordAuditEvent } from '@/lib/audit';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -45,12 +46,13 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
+  let client;
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     if (!id) return NextResponse.json({ error: 'ID no proporcionado' }, { status: 400 });
 
-    const client = await pool.connect();
+    client = await pool.connect();
     
     // Verificamos de seguridad extra: ¿El usuario a borrar es el Root?
     const userCheck = await client.query('SELECT email, rol FROM usuarios_admin WHERE id = $1', [id]);
@@ -62,10 +64,25 @@ export async function DELETE(request: Request) {
       }
     }
 
-    await client.query('DELETE FROM usuarios_admin WHERE id = $1', [id]);
+    await client.query('BEGIN');
+    const deleted = await client.query('DELETE FROM usuarios_admin WHERE id = $1', [id]);
+    if (deleted.rowCount) {
+      await recordAuditEvent({
+        request,
+        action: 'eliminar',
+        entity: 'usuario',
+        entityId: id,
+        details: userCheck.rows[0] ?? {},
+      }, client);
+    }
+    await client.query('COMMIT');
     client.release();
     return NextResponse.json({ success: true });
   } catch (error) {
+    if (client) {
+      await client.query('ROLLBACK');
+      client.release();
+    }
     console.error('Error al eliminar usuario:', error);
     return NextResponse.json({ error: 'Error de seguridad al procesar la solicitud' }, { status: 500 });
   }

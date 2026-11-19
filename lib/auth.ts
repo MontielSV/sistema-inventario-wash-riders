@@ -4,6 +4,12 @@ import { NextResponse } from 'next/server';
 const COOKIE_NAME = 'wash_riders_session';
 const SESSION_DURATION_SECONDS = 60 * 60 * 8;
 
+export interface SessionIdentity {
+  username: string;
+  nombre?: string;
+  userId?: number;
+}
+
 function getSecret() {
   const secret = process.env.AUTH_SECRET || process.env.DATABASE_URL;
   if (!secret) throw new Error('Configura AUTH_SECRET o DATABASE_URL');
@@ -37,16 +43,16 @@ export function verifyPassword(password: string, storedPassword: string) {
   }
 }
 
-export function createSession(username: string) {
+export function createSession(identity: SessionIdentity | string) {
   const payload = Buffer.from(JSON.stringify({
-    username,
+    ...(typeof identity === 'string' ? { username: identity } : identity),
     expiresAt: Math.floor(Date.now() / 1000) + SESSION_DURATION_SECONDS,
   })).toString('base64url');
 
   return `${payload}.${sign(payload)}`;
 }
 
-export function isAuthenticated(request: Request) {
+export function getSessionIdentity(request: Request): SessionIdentity | null {
   try {
     const cookie = request.headers.get('cookie')
       ?.split(';')
@@ -54,20 +60,34 @@ export function isAuthenticated(request: Request) {
       .find((part) => part.startsWith(`${COOKIE_NAME}=`))
       ?.slice(COOKIE_NAME.length + 1);
 
-    if (!cookie) return false;
+    if (!cookie) return null;
 
     const [payload, signature] = cookie.split('.');
-    if (!payload || !signature) return false;
+    if (!payload || !signature) return null;
 
     const expected = Buffer.from(sign(payload));
     const received = Buffer.from(signature);
-    if (expected.length !== received.length || !timingSafeEqual(expected, received)) return false;
+    if (expected.length !== received.length || !timingSafeEqual(expected, received)) return null;
 
     const session = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
-    return typeof session.username === 'string' && session.expiresAt > Math.floor(Date.now() / 1000);
+    if (
+      typeof session.username !== 'string' ||
+      typeof session.expiresAt !== 'number' ||
+      session.expiresAt <= Math.floor(Date.now() / 1000)
+    ) return null;
+
+    return {
+      username: session.username,
+      ...(typeof session.nombre === 'string' ? { nombre: session.nombre } : {}),
+      ...(Number.isInteger(session.userId) ? { userId: session.userId } : {}),
+    };
   } catch {
-    return false;
+    return null;
   }
+}
+
+export function isAuthenticated(request: Request) {
+  return getSessionIdentity(request) !== null;
 }
 
 export function setSessionCookie(response: NextResponse, value: string) {

@@ -7,6 +7,7 @@ import ProductosView from './components/admin/ProductosView';
 import InventarioView from './components/admin/InventarioView';
 import RegistrarVentaView from './components/admin/RegistrarVentaView';
 import ReportesInventarioView from './components/admin/ReportesInventarioView';
+import HistorialActividadView from './components/admin/HistorialActividadView';
 import { CubeIcon, LockClosedIcon, MoonIcon, SunIcon, UserIcon } from '@heroicons/react/24/outline';
 
 type Tema = 'light' | 'dark';
@@ -247,6 +248,7 @@ export default function Home() {
           )}
           {vistaActiva === 'reporte-ventas' && <ReportesInventarioView modo="diario" />}
           {vistaActiva === 'pdf' && <ReportesInventarioView modo="mensual" />}
+          {vistaActiva === 'bitacora' && <HistorialActividadView />}
         </div>
         <footer className="border-t border-slate-200 bg-white px-4 py-4 text-center text-xs text-slate-500 sm:px-8">
           © {new Date().getFullYear()} WashRider. Todos los derechos reservados.

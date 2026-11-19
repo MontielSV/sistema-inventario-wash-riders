@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Pool } from 'pg';
 import { isAuthenticated } from '@/lib/auth';
+import { recordAuditEvent } from '@/lib/audit';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -67,6 +68,12 @@ export async function POST(request: Request) {
             }
           }
         }
+        await recordAuditEvent({
+          request,
+          action: 'importar',
+          entity: 'recetas',
+          details: { filas_procesadas: body.length },
+        }, client);
         await client.query('COMMIT');
         client.release();
         return NextResponse.json({ success: true, message: '¡Recetas importadas con éxito!' });
@@ -78,6 +85,7 @@ export async function POST(request: Request) {
     }
 
     const { producto_id, ingredientes } = body;
+    await client.query('BEGIN');
     await client.query('DELETE FROM receta_producto WHERE producto_id = $1', [producto_id]);
     
     for (const ing of ingredientes) {
@@ -86,11 +94,22 @@ export async function POST(request: Request) {
         [producto_id, ing.insumo_id, ing.cantidad_usada]
       );
     }
+    await recordAuditEvent({
+      request,
+      action: 'editar',
+      entity: 'receta_producto',
+      entityId: producto_id,
+      details: { ingredientes },
+    }, client);
+    await client.query('COMMIT');
     client.release();
     return NextResponse.json({ success: true });
 
   } catch (error) {
-    if (client) client.release();
+    if (client) {
+      await client.query('ROLLBACK');
+      client.release();
+    }
     console.error("Error guardando receta:", error);
     return NextResponse.json({ error: 'Error guardando receta' }, { status: 500 });
   }

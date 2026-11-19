@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import type { PoolClient } from 'pg';
 import pool from '@/lib/db';
 import { isAuthenticated } from '@/lib/auth';
+import { recordAuditEvent } from '@/lib/audit';
 import { ensureInventoryTables } from '@/lib/inventory-db';
 import { createInventoryTrackingCode } from '@/lib/inventory-tracking';
 
@@ -108,6 +109,13 @@ export async function POST(request: Request) {
       total += subtotal;
     }
 
+    await recordAuditEvent({
+      request,
+      action: 'registrar',
+      entity: tipo === 'VENTA' ? 'venta' : 'salida_inventario',
+      entityId: transaccionId,
+      details: { tipo, motivo, total, items: movimientos },
+    }, client);
     await client.query('COMMIT');
     transactionStarted = false;
     return NextResponse.json({

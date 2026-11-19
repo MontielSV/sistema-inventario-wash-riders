@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Pool } from 'pg';
 import { isAuthenticated } from '@/lib/auth';
+import { recordAuditEvent } from '@/lib/audit';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -46,6 +47,7 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
+  let client;
   try {
     const body = await request.json();
     const { 
@@ -64,7 +66,8 @@ export async function PUT(request: Request) {
       descuento_web_porcentaje
     } = body;
     
-    const client = await pool.connect();
+    client = await pool.connect();
+    await client.query('BEGIN');
     
     const result = await client.query(
       `UPDATE configuracion_negocio 
@@ -99,10 +102,36 @@ export async function PUT(request: Request) {
         descuento_web_porcentaje
       ]
     );
+    await recordAuditEvent({
+      request,
+      action: 'editar',
+      entity: 'configuracion_negocio',
+      entityId: 1,
+      details: {
+        tienda_abierta,
+        whatsapp_numero,
+        nombre_negocio,
+        slogan,
+        hora_apertura,
+        hora_cierre,
+        costo_domicilio,
+        mensaje_whatsapp_custom,
+        aviso_banner,
+        formato_impresora,
+        pie_pagina_ticket,
+        descuento_web_activo,
+        descuento_web_porcentaje,
+      },
+    }, client);
     
+    await client.query('COMMIT');
     client.release();
     return NextResponse.json(result.rows[0]);
   } catch (error) {
+    if (client) {
+      await client.query('ROLLBACK');
+      client.release();
+    }
     console.error("Error en PUT configuración:", error);
     return NextResponse.json({ error: 'Error al actualizar' }, { status: 500 });
   }

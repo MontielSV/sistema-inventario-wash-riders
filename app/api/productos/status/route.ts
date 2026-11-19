@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { isAuthenticated } from '@/lib/auth';
+import { recordAuditEvent } from '@/lib/audit';
 
 export const runtime = 'nodejs';
 
@@ -21,6 +22,15 @@ export async function PATCH(request: Request) {
       'UPDATE productos SET disponible = $1 WHERE id = $2 RETURNING *',
       [disponible, id]
     );
+    if (result.rows[0]) {
+      await recordAuditEvent({
+        request,
+        action: disponible ? 'editar' : 'eliminar',
+        entity: 'producto',
+        entityId: result.rows[0].id,
+        details: { disponible: result.rows[0].disponible, nombre: result.rows[0].nombre },
+      });
+    }
 
     // 3. Si la base de datos respondió, mandamos éxito
     return NextResponse.json({ ok: true, data: result.rows[0] });

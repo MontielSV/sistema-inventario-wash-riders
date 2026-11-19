@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type { PoolClient } from 'pg';
 import pool from '@/lib/db';
 import { isAuthenticated } from '@/lib/auth';
+import { recordAuditEvent } from '@/lib/audit';
 import { ensureInventoryTables } from '@/lib/inventory-db';
 import { findAvailableProductCode, lockProductCodeAllocation } from '@/lib/product-code';
 
@@ -73,6 +74,20 @@ export async function POST(request: Request) {
       [codigo, nombre.trim(), categoria.trim(), stockActual, stockMinimo, precioProducto]
     );
 
+    await recordAuditEvent({
+      request,
+      action: 'crear',
+      entity: 'producto',
+      entityId: result.rows[0].id,
+      details: {
+        codigo,
+        nombre: nombre.trim(),
+        categoria: categoria.trim(),
+        stock_actual: stockActual,
+        stock_minimo: stockMinimo,
+        precio: precioProducto,
+      },
+    }, client);
     await client.query('COMMIT');
     return NextResponse.json(result.rows[0], { status: 201 });
   } catch (error) {
@@ -92,6 +107,7 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
+  let client: PoolClient | undefined;
   try {
     const body = await request.json();
     const id = Number(body.id);
@@ -115,15 +131,24 @@ export async function PUT(request: Request) {
     }
 
     await ensureInventoryTables();
-    const duplicate = await pool.query(
+    client = await pool.connect();
+    await client.query('BEGIN');
+    const duplicate = await client.query(
       'SELECT id FROM productos WHERE LOWER(codigo) = LOWER($1) AND id <> $2 LIMIT 1',
       [body.codigo.trim(), id]
     );
     if (duplicate.rowCount) {
+      await client.query('ROLLBACK');
       return NextResponse.json({ error: 'El código de producto ya está registrado' }, { status: 409 });
     }
 
-    const result = await pool.query(
+    const previousResult = await client.query('SELECT * FROM productos WHERE id = $1 FOR UPDATE', [id]);
+    if (previousResult.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 });
+    }
+
+    const result = await client.query(
       `UPDATE productos
        SET codigo = $1, nombre = $2, categoria = $3,
            stock_actual = $4, stock_minimo = $5, precio = $6
@@ -133,13 +158,25 @@ export async function PUT(request: Request) {
     );
 
     if (result.rowCount === 0) {
+      await client.query('ROLLBACK');
       return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 });
     }
 
+    await recordAuditEvent({
+      request,
+      action: 'editar',
+      entity: 'producto',
+      entityId: id,
+      details: { anterior: previousResult.rows[0], nuevo: result.rows[0] },
+    }, client);
+    await client.query('COMMIT');
     return NextResponse.json(result.rows[0]);
   } catch (error) {
+    if (client) await client.query('ROLLBACK');
     console.error('Error al actualizar producto:', error);
     return NextResponse.json({ error: 'No se pudo actualizar el producto' }, { status: 500 });
+  } finally {
+    client?.release();
   }
 }
 
@@ -148,6 +185,7 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
+  let client: PoolClient | undefined;
   try {
     const body = await request.json();
     const id = Number(body.id);
@@ -156,16 +194,31 @@ export async function DELETE(request: Request) {
     }
 
     await ensureInventoryTables();
-    const result = await pool.query(
+    client = await pool.connect();
+    await client.query('BEGIN');
+    const previousResult = await client.query('SELECT id, codigo, nombre, categoria FROM productos WHERE id = $1 FOR UPDATE', [id]);
+    const result = await client.query(
       'UPDATE productos SET disponible = FALSE WHERE id = $1 AND COALESCE(disponible, TRUE) = TRUE RETURNING id',
       [id]
     );
     if (!result.rowCount) {
+      await client.query('ROLLBACK');
       return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 });
     }
+    await recordAuditEvent({
+      request,
+      action: 'eliminar',
+      entity: 'producto',
+      entityId: id,
+      details: { ...previousResult.rows[0], eliminacion: 'retirado del catálogo' },
+    }, client);
+    await client.query('COMMIT');
     return NextResponse.json({ ok: true, id });
   } catch (error) {
+    if (client) await client.query('ROLLBACK');
     console.error('Error al retirar producto del catálogo:', error);
     return NextResponse.json({ error: 'No se pudo retirar el producto del catálogo' }, { status: 500 });
+  } finally {
+    client?.release();
   }
 }

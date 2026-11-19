@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import type { PoolClient } from 'pg';
 import pool from '@/lib/db';
 import { isAuthenticated } from '@/lib/auth';
+import { recordAuditEvent } from '@/lib/audit';
 import { ensureInventoryTables } from '@/lib/inventory-db';
 import { createInventoryTrackingCode } from '@/lib/inventory-tracking';
 
@@ -110,6 +111,20 @@ export async function POST(request: Request) {
        RETURNING *`,
       [productoId, tipo, cantidad, motivoTipo, motivo, producto.rows[0].precio, fecha, transaccionId, codigoSeguimiento]
     );
+    await recordAuditEvent({
+      request,
+      action: 'registrar',
+      entity: 'movimiento_inventario',
+      entityId: result.rows[0].id,
+      details: {
+        producto_id: productoId,
+        tipo,
+        cantidad,
+        motivo_tipo: motivoTipo,
+        motivo,
+        fecha: fecha.toISOString(),
+      },
+    }, client);
     await client.query('COMMIT');
     return NextResponse.json(result.rows[0], { status: 201 });
   } catch (error) {
@@ -196,6 +211,13 @@ export async function PUT(request: Request) {
        WHERE id = $8 RETURNING *`,
       [productoId, tipo, cantidad, motivoTipo, motivo, productPrice, fecha, id]
     );
+    await recordAuditEvent({
+      request,
+      action: 'editar',
+      entity: 'movimiento_inventario',
+      entityId: id,
+      details: { anterior: old, nuevo: result.rows[0] },
+    }, client);
     await client.query('COMMIT');
     return NextResponse.json(result.rows[0]);
   } catch (error) {

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { PoolClient } from 'pg';
 import { isAuthenticated } from '@/lib/auth';
+import { recordAuditEvent } from '@/lib/audit';
 import pool from '@/lib/db';
 import { ensureInventoryTables } from '@/lib/inventory-db';
 import { lockProductCodeAllocation } from '@/lib/product-code';
@@ -44,6 +45,17 @@ export async function POST(request: Request) {
     agregados = inserted.rowCount || 0;
     existentes = WR_PRODUCT_NAMES.length - agregados;
 
+    await recordAuditEvent({
+      request,
+      action: 'importar',
+      entity: 'catalogo_productos',
+      details: {
+        agregados,
+        existentes,
+        retirados: retirado.rowCount || 0,
+        total: WR_PRODUCT_NAMES.length,
+      },
+    }, client);
     await client.query('COMMIT');
     return NextResponse.json({
       agregados,
