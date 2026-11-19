@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import {
   ArrowLeftIcon,
@@ -314,7 +315,7 @@ function DetailValue({ value, field = '' }: { value: unknown; field?: string }) 
   return <>{formatDetailValue(field, value)}</>;
 }
 
-export default function HistorialActividadView() {
+export default function HistorialActividadView({ headerContent }: { headerContent?: ReactNode }) {
   const [entries, setEntries] = useState<ActivityEntry[]>([]);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(100);
@@ -374,6 +375,7 @@ export default function HistorialActividadView() {
           Actualizar
         </button>
       </header>
+      {headerContent}
 
       {error && (
         <div role="alert" className="mb-4 rounded-xl border border-red-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">
