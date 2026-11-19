@@ -14,7 +14,6 @@ import {
   MoonIcon,
   SunIcon,
   QuestionMarkCircleIcon,
-  ClockIcon,
 } from '@heroicons/react/24/outline';
 
 interface SidebarProps {
@@ -43,12 +42,11 @@ export default function Sidebar({ vistaActiva, setVistaActiva, onLogout, tema, o
     { id: 'historial', nombre: 'Historial', icono: ShoppingBagIcon, tono: 'text-amber-300' },
     { id: 'reporte-ventas', nombre: 'Reporte Diario', icono: CurrencyDollarIcon, tono: 'text-teal-300' },
     { id: 'pdf', nombre: 'Reporte mensual', icono: ChartBarIcon, tono: 'text-violet-300' },
-    { id: 'bitacora', nombre: 'Bitácora de actividad', icono: ClockIcon, tono: 'text-purple-300' },
   ];
 
   return (
     <>
-      <aside className={`sticky top-0 z-30 flex w-full flex-col gap-2 border-b px-3 pb-2 pt-[max(0.75rem,env(safe-area-inset-top))] text-white shadow-md print:hidden lg:h-screen lg:min-h-screen lg:w-64 lg:justify-between lg:border-b-0 lg:border-r lg:p-4 lg:shadow-none ${tema === 'dark' ? 'border-slate-700 bg-[#081a2b]' : 'border-[#1f5a8a] bg-[#123b60]'}`}>
+      <aside className={`sticky top-0 z-30 flex w-full flex-col gap-2 border-b px-3 pb-2 pt-[max(0.75rem,env(safe-area-inset-top))] text-white shadow-md print:hidden lg:h-screen lg:max-h-screen lg:min-h-0 lg:w-64 lg:overflow-y-auto lg:justify-between lg:border-b-0 lg:border-r lg:p-4 lg:shadow-none ${tema === 'dark' ? 'border-slate-700 bg-[#081a2b]' : 'border-[#1f5a8a] bg-[#123b60]'}`}>
         <div className="flex flex-col gap-2 lg:block lg:space-y-6">
           <div className="flex items-center justify-between gap-3 lg:block">
             <div className="min-w-0 px-1 py-1 lg:px-3 lg:py-2">
@@ -67,7 +65,7 @@ export default function Sidebar({ vistaActiva, setVistaActiva, onLogout, tema, o
             </button>
           </div>
 
-          <nav className="flex w-full snap-x gap-2 overflow-x-auto overscroll-x-contain pb-1 pt-0.5 lg:flex-col lg:snap-none lg:space-y-1 lg:overflow-visible lg:pb-0 lg:pt-0" aria-label="Navegación principal">
+          <nav className="grid w-full grid-cols-2 gap-2 pb-1 pt-0.5 sm:grid-cols-3 lg:flex lg:flex-col lg:gap-1 lg:pb-0 lg:pt-0" aria-label="Navegación principal">
             {menuItems.map((item) => {
               const Icono = item.icono;
               const activo = vistaActiva === item.id;
@@ -77,7 +75,7 @@ export default function Sidebar({ vistaActiva, setVistaActiva, onLogout, tema, o
                   type="button"
                   onClick={() => setVistaActiva(item.id)}
                   aria-current={activo ? 'page' : undefined}
-                  className={`flex min-h-11 w-auto shrink-0 snap-start items-center gap-2 rounded-lg border-b-2 px-3 py-2 text-xs font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-300 lg:min-h-0 lg:w-full lg:gap-3 lg:border-b-0 lg:border-l-4 lg:px-4 lg:py-3 ${
+                  className={`flex min-h-11 w-full min-w-0 items-center gap-2 rounded-lg border-b-2 px-2 py-2 text-left text-xs leading-tight font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-300 lg:min-h-0 lg:gap-3 lg:border-b-0 lg:border-l-4 lg:px-4 lg:py-3 ${
                     activo
                       ? tema === 'dark'
                         ? 'border-sky-200 bg-sky-200 font-bold text-[#081a2b] shadow-md shadow-black/20'

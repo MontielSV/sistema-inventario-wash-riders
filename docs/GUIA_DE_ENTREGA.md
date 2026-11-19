@@ -73,8 +73,7 @@ Las versiones y rangos declarados están en `package.json`; `package-lock.json` 
 | Productos | Menú lateral → Productos o ficha «Productos registrados» | Busca, crea, edita y retira productos del catálogo. |
 | Registrar venta | Menú lateral → Registrar venta | Registra una venta o una salida de varios productos en una sola operación. |
 | Registrar movimiento | Menú lateral → Registrar movimiento | Registra una entrada o salida manual individual y permite editar movimientos manuales. |
-| Historial | Menú lateral → Historial | Consulta y filtra entradas y salidas, permite editar movimientos manuales y muestra la actividad del sistema con sus detalles y datos de contexto. |
-| Bitácora de actividad | Menú lateral → Bitácora de actividad | Consulta sesiones y cambios del sistema, con usuario, fecha, detalles, IP, origen y dispositivo; permite recorrer todo el registro por páginas. |
+| Historial | Menú lateral → Historial | Consulta y filtra entradas y salidas y permite editar movimientos manuales. |
 | Reporte Diario | Menú lateral → Reporte Diario | Consulta las ventas y compras de un día y permite imprimir el reporte. |
 | Reporte mensual | Menú lateral → Reporte mensual | Consulta un mes y permite imprimir/guardar desde el diálogo de impresión del navegador. |
 
