@@ -132,15 +132,15 @@ const enumLabels: Record<string, string> = {
 };
 
 const actionTone: Record<string, string> = {
-  inicio_sesion: 'border-emerald-200 bg-emerald-50 text-emerald-800',
+  inicio_sesion: 'border-green-200 bg-green-50 text-green-800',
   cierre_sesion: 'border-slate-200 bg-slate-100 text-slate-700',
-  intento_fallido: 'border-red-200 bg-rose-50 text-rose-800',
+  intento_fallido: 'border-rose-200 bg-rose-50 text-rose-800',
   crear: 'border-emerald-200 bg-emerald-50 text-emerald-800',
-  editar: 'border-blue-200 bg-blue-50 text-blue-800',
-  eliminar: 'border-red-200 bg-rose-50 text-rose-800',
-  registrar: 'border-blue-200 bg-blue-50 text-blue-800',
-  importar: 'border-blue-200 bg-blue-50 text-blue-800',
-  cerrar_caja: 'border-amber-200 bg-amber-50 text-amber-800',
+  editar: 'border-amber-200 bg-amber-50 text-amber-800',
+  eliminar: 'border-red-200 bg-red-50 text-red-800',
+  registrar: 'border-cyan-200 bg-cyan-50 text-cyan-800',
+  importar: 'border-violet-200 bg-violet-50 text-violet-800',
+  cerrar_caja: 'border-orange-200 bg-orange-50 text-orange-800',
 };
 
 const asRecord = (value: unknown): Record<string, unknown> | null => (
