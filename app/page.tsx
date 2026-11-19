@@ -8,6 +8,7 @@ import InventarioView from './components/admin/InventarioView';
 import RegistrarVentaView from './components/admin/RegistrarVentaView';
 import ReportesInventarioView from './components/admin/ReportesInventarioView';
 import HistorialActividadView from './components/admin/HistorialActividadView';
+import HistorialView from './components/admin/HistorialView';
 import { CubeIcon, LockClosedIcon, MoonIcon, SunIcon, UserIcon } from '@heroicons/react/24/outline';
 
 type Tema = 'light' | 'dark';
@@ -241,11 +242,8 @@ export default function Home() {
           {vistaActiva === 'dashboard' && <DashboardView onNavigate={setVistaActiva} />}
           {vistaActiva === 'productos' && <ProductosView />}
           {vistaActiva === 'ventas' && <RegistrarVentaView />}
-          {(vistaActiva === 'registrar-movimiento' || vistaActiva === 'historial') && (
-            <InventarioView
-              vista={vistaActiva === 'historial' ? 'historial' : 'registrar'}
-            />
-          )}
+          {vistaActiva === 'registrar-movimiento' && <InventarioView vista="registrar" />}
+          {vistaActiva === 'historial' && <HistorialView />}
           {vistaActiva === 'reporte-ventas' && <ReportesInventarioView modo="diario" />}
           {vistaActiva === 'pdf' && <ReportesInventarioView modo="mensual" />}
           {vistaActiva === 'bitacora' && <HistorialActividadView />}

@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { ArrowPathIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { useCallback, useEffect, useState } from 'react';
+import { ArrowLeftIcon, ArrowPathIcon, ArrowRightIcon, ClockIcon } from '@heroicons/react/24/outline';
 
 interface ActivityEntry {
   id: number;
@@ -14,6 +14,13 @@ interface ActivityEntry {
   ip: string | null;
   agente_usuario: string | null;
   origen: string | null;
+}
+
+interface ActivityResponse {
+  entries: ActivityEntry[];
+  total: number;
+  page: number;
+  pageSize: number;
 }
 
 const actionLabels: Record<string, string> = {
@@ -32,7 +39,7 @@ const readable = (value: unknown) => {
   if (value === null || value === undefined || value === '') return '—';
   if (typeof value === 'string') return value;
   try {
-    return JSON.stringify(value);
+    return JSON.stringify(value, null, 2);
   } catch {
     return String(value);
   }
@@ -40,26 +47,36 @@ const readable = (value: unknown) => {
 
 export default function HistorialActividadView() {
   const [entries, setEntries] = useState<ActivityEntry[]>([]);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(100);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const loadEntries = async () => {
+  const loadEntries = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      const response = await fetch('/api/historial', { cache: 'no-store' });
+      const response = await fetch(`/api/historial?page=${page}`, { cache: 'no-store' });
       if (!response.ok) throw new Error('No se pudo cargar el historial de actividad.');
-      setEntries(await response.json());
+      const data: ActivityResponse = await response.json();
+      setEntries(data.entries);
+      setTotal(data.total);
+      setPageSize(data.pageSize);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Error al cargar el historial.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [page]);
 
   useEffect(() => {
     void loadEntries();
-  }, []);
+  }, [loadEntries]);
+
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const firstEntry = total === 0 ? 0 : (page - 1) * pageSize + 1;
+  const lastEntry = Math.min(page * pageSize, total);
 
   return (
     <section className="mx-auto w-full max-w-7xl p-4 sm:p-8">
@@ -67,10 +84,10 @@ export default function HistorialActividadView() {
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-black text-[#123b60] dark:text-blue-100">
             <ClockIcon className="h-7 w-7" />
-            Bitácora de actividad
+            Historial de actividad
           </h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Sesiones y cambios realizados. Se muestran los 500 eventos más recientes.
+            Sesiones y cambios realizados, con usuario, detalles, fecha, origen y dispositivo.
           </p>
         </div>
         <button
@@ -140,6 +157,32 @@ export default function HistorialActividadView() {
           </tbody>
         </table>
       </div>
+      <footer className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <p>
+          {total === 0 ? 'Sin eventos' : `Mostrando ${firstEntry}–${lastEntry} de ${total} eventos`}
+        </p>
+        <nav aria-label="Paginación del historial de actividad" className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setPage((current) => Math.max(1, current - 1))}
+            disabled={loading || page <= 1}
+            className="inline-flex min-h-10 items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+          >
+            <ArrowLeftIcon className="h-4 w-4" />
+            Anterior
+          </button>
+          <span aria-live="polite">Página {page} de {totalPages}</span>
+          <button
+            type="button"
+            onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+            disabled={loading || page >= totalPages}
+            className="inline-flex min-h-10 items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+          >
+            Siguiente
+            <ArrowRightIcon className="h-4 w-4" />
+          </button>
+        </nav>
+      </footer>
     </section>
   );
 }
