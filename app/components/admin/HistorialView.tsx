@@ -10,7 +10,7 @@ export default function HistorialView() {
   const [tab, setTab] = useState<HistorialTab>('movimientos');
   const tabs: { id: HistorialTab; label: string }[] = [
     { id: 'movimientos', label: 'Movimientos de inventario' },
-    { id: 'actividad', label: 'Actividad del sistema' },
+    { id: 'actividad', label: 'Movimiento de Usuarios' },
   ];
 
   return (
@@ -31,8 +31,8 @@ export default function HistorialView() {
             onClick={() => setTab(item.id)}
             className={`min-h-11 shrink-0 rounded-lg px-4 text-sm font-bold transition-colors ${
               tab === item.id
-                ? 'bg-[#123b60] text-white'
-                : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200'
+                ? 'bg-[#123b60] text-white shadow-sm'
+                : 'border border-blue-200 bg-white text-blue-900 hover:bg-blue-50'
             }`}
           >
             {item.label}

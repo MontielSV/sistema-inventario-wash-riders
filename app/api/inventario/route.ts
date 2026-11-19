@@ -86,7 +86,7 @@ export async function POST(request: Request) {
     client = await pool.connect();
     await client.query('BEGIN');
     const producto = await client.query(
-      'SELECT id, stock_actual, precio FROM productos WHERE id = $1 AND COALESCE(disponible, TRUE) = TRUE FOR UPDATE',
+      'SELECT id, codigo, nombre, stock_actual, precio FROM productos WHERE id = $1 AND COALESCE(disponible, TRUE) = TRUE FOR UPDATE',
       [productoId]
     );
 
@@ -95,7 +95,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 });
     }
 
-    const nuevoStock = Number(producto.rows[0].stock_actual) + movementDelta(tipo, cantidad);
+    const stockAnterior = Number(producto.rows[0].stock_actual);
+    const nuevoStock = stockAnterior + movementDelta(tipo, cantidad);
     if (nuevoStock < 0) {
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'Stock insuficiente para registrar esta salida' }, { status: 409 });
@@ -118,11 +119,19 @@ export async function POST(request: Request) {
       entityId: result.rows[0].id,
       details: {
         producto_id: productoId,
+        codigo_producto: producto.rows[0].codigo,
+        nombre_producto: producto.rows[0].nombre,
         tipo,
         cantidad,
         motivo_tipo: motivoTipo,
         motivo,
+        precio_unitario: Number(producto.rows[0].precio),
+        valor_movimiento: Number(producto.rows[0].precio) * cantidad,
+        stock_anterior: stockAnterior,
+        stock_nuevo: nuevoStock,
         fecha: fecha.toISOString(),
+        transaccion_id: transaccionId,
+        codigo_seguimiento: codigoSeguimiento,
       },
     }, client);
     await client.query('COMMIT');
@@ -181,7 +190,7 @@ export async function PUT(request: Request) {
     }
     const productIds = [...new Set([Number(old.producto_id), productoId])].sort((a, b) => a - b);
     const products = await client.query(
-      'SELECT id, stock_actual, precio FROM productos WHERE id = ANY($1::int[]) ORDER BY id FOR UPDATE',
+      'SELECT id, codigo, nombre, stock_actual, precio FROM productos WHERE id = ANY($1::int[]) ORDER BY id FOR UPDATE',
       [productIds]
     );
     if (products.rowCount !== productIds.length) {
@@ -204,6 +213,8 @@ export async function PUT(request: Request) {
     await client.query('UPDATE productos SET stock_actual = $1 WHERE id = $2', [restoredOldStock, oldProductId]);
     await client.query('UPDATE productos SET stock_actual = $1 WHERE id = $2', [nextStock, productoId]);
     const productPrice = products.rows.find((product) => Number(product.id) === productoId)?.precio;
+    const oldProduct = products.rows.find((product) => Number(product.id) === oldProductId);
+    const newProduct = products.rows.find((product) => Number(product.id) === productoId);
     const result = await client.query(
       `UPDATE movimientos
        SET producto_id = $1, tipo = $2, cantidad = $3, motivo_tipo = $4,
@@ -216,7 +227,18 @@ export async function PUT(request: Request) {
       action: 'editar',
       entity: 'movimiento_inventario',
       entityId: id,
-      details: { anterior: old, nuevo: result.rows[0] },
+      details: {
+        anterior: old,
+        nuevo: result.rows[0],
+        nombre_producto: newProduct?.nombre,
+        codigo_producto: newProduct?.codigo,
+        producto_anterior: oldProduct
+          ? { id: oldProduct.id, nombre: oldProduct.nombre, codigo: oldProduct.codigo }
+          : null,
+        producto_nuevo: newProduct
+          ? { id: newProduct.id, nombre: newProduct.nombre, codigo: newProduct.codigo }
+          : null,
+      },
     }, client);
     await client.query('COMMIT');
     return NextResponse.json(result.rows[0]);
