@@ -7,13 +7,14 @@ import {
   ShoppingBagIcon, 
   ShoppingCartIcon,
   ArrowsRightLeftIcon,
-  DocumentArrowDownIcon,
   CurrencyDollarIcon,
   ChartBarIcon,
   ArrowRightOnRectangleIcon,
+  Bars3Icon,
   MoonIcon,
   SunIcon,
   QuestionMarkCircleIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
 
 interface SidebarProps {
@@ -27,6 +28,7 @@ interface SidebarProps {
 
 export default function Sidebar({ vistaActiva, setVistaActiva, onLogout, tema, onToggleTheme, onOpenGuide }: SidebarProps) {
   const [confirmarCierre, setConfirmarCierre] = useState(false);
+  const [menuAbierto, setMenuAbierto] = useState(false);
   const dialogoCierreRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -61,11 +63,27 @@ export default function Sidebar({ vistaActiva, setVistaActiva, onLogout, tema, o
               className="flex h-11 w-11 shrink-0 items-center justify-center gap-2 rounded-lg border border-white/25 bg-white/10 text-xs font-bold text-white transition-colors hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-300 sm:h-auto sm:w-auto sm:justify-start sm:px-3 sm:py-2.5 lg:mt-6 lg:w-full lg:px-4"
             >
               {tema === 'light' ? <MoonIcon aria-hidden="true" className="h-5 w-5 shrink-0 text-yellow-300" /> : <SunIcon aria-hidden="true" className="h-5 w-5 shrink-0 text-yellow-300" />}
-              <span className="hidden sm:inline">Cambiar a modo {tema === 'light' ? 'oscuro' : 'claro'}</span>
+              <span className="hidden lg:inline">Cambiar a modo {tema === 'light' ? 'oscuro' : 'claro'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setMenuAbierto((abierto) => !abierto)}
+              aria-expanded={menuAbierto}
+              aria-controls="sidebar-navigation"
+              aria-label={menuAbierto ? 'Cerrar navegación' : 'Abrir navegación'}
+              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-white/25 bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-300 lg:hidden"
+            >
+              {menuAbierto
+                ? <XMarkIcon aria-hidden="true" className="h-5 w-5" />
+                : <Bars3Icon aria-hidden="true" className="h-5 w-5" />}
             </button>
           </div>
 
-          <nav className="grid w-full grid-cols-2 gap-2 pb-1 pt-0.5 sm:grid-cols-3 lg:flex lg:flex-col lg:gap-1 lg:pb-0 lg:pt-0" aria-label="Navegación principal">
+          <nav
+            id="sidebar-navigation"
+            className={`${menuAbierto ? 'grid' : 'hidden'} w-full grid-cols-2 gap-2 pb-1 pt-0.5 sm:grid-cols-3 lg:flex lg:flex-col lg:gap-1 lg:pb-0 lg:pt-0`}
+            aria-label="Navegación principal"
+          >
             {menuItems.map((item) => {
               const Icono = item.icono;
               const activo = vistaActiva === item.id;
@@ -73,7 +91,10 @@ export default function Sidebar({ vistaActiva, setVistaActiva, onLogout, tema, o
                 <button
                   key={item.id}
                   type="button"
-                  onClick={() => setVistaActiva(item.id)}
+                  onClick={() => {
+                    setVistaActiva(item.id);
+                    setMenuAbierto(false);
+                  }}
                   aria-current={activo ? 'page' : undefined}
                   className={`flex min-h-11 w-full min-w-0 items-center gap-2 rounded-lg border-b-2 px-2 py-2 text-left text-xs leading-tight font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-300 lg:min-h-0 lg:gap-3 lg:border-b-0 lg:border-l-4 lg:px-4 lg:py-3 ${
                     activo
@@ -91,10 +112,13 @@ export default function Sidebar({ vistaActiva, setVistaActiva, onLogout, tema, o
           </nav>
         </div>
 
-        <div className="flex flex-col gap-2 border-t border-white/15 pt-2 lg:border-0 lg:pt-0">
+        <div className={`${menuAbierto ? 'grid' : 'hidden'} grid-cols-2 gap-2 border-t border-white/15 pt-2 lg:flex lg:flex-col lg:gap-2 lg:border-0 lg:pt-0`}>
           <button
             type="button"
-            onClick={onOpenGuide}
+            onClick={() => {
+              setMenuAbierto(false);
+              onOpenGuide();
+            }}
             className="flex min-h-11 w-full items-center gap-2 rounded-lg border border-white/25 bg-white/10 px-3 text-xs font-bold text-white transition-colors hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-300 lg:gap-3 lg:px-4 lg:py-3"
           >
             <QuestionMarkCircleIcon aria-hidden="true" className="h-5 w-5 shrink-0 text-cyan-200" />
@@ -102,7 +126,10 @@ export default function Sidebar({ vistaActiva, setVistaActiva, onLogout, tema, o
           </button>
           <button
             type="button"
-            onClick={() => setConfirmarCierre(true)}
+            onClick={() => {
+              setMenuAbierto(false);
+              setConfirmarCierre(true);
+            }}
             className="flex min-h-11 w-full items-center gap-2 rounded-lg border border-red-200/30 bg-red-950/20 px-3 text-xs font-bold uppercase text-red-100 transition-colors hover:bg-red-950/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-200 lg:gap-3 lg:px-4 lg:py-3"
           >
             <ArrowRightOnRectangleIcon className="h-5 w-5 shrink-0" />
